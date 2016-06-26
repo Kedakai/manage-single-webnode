@@ -1,11 +1,11 @@
-#!/bin/bash                                                                                                                  
-                                                                                                                             
-service=$1                                                                                                                   
-logdir="/var/log/managelinux.log"                                                                                            
-path_to_nginx_conf="/home/etc/nginx/sites/"                                                                                  
-path_to_nginx_work="/home/web/"                                                                                                                                                              
-configsamples="/home/samples"                                                                                                                                                                
-proftpd_sqlite3_database_lcoation="/var/www/proftpd/proftpddatabase.db"                                                                                                                      
+#!/bin/bash
+
+service=$1
+logdir="/var/log/managelinux.log"
+path_to_nginx_conf="/home/etc/nginx/sites/"
+path_to_nginx_work="/home/web/"
+configsamples="/home/samples"
+proftpd_sqlite3_database_lcoation="/var/www/proftpd/proftpddatabase.db"
 mysqlrootpw="OhMyGodThatDatabasePWissoHArd!!"
 
 function get_log_date(){
@@ -287,6 +287,31 @@ function server() {
                                 sed -i 's:include /etc/nginx/conf.d/*.conf:$path_to_nginx_conf*.conf:g' /etc/nginx/nginx.conf
                                 sed -i 's:768:1024:g' /etc/nginx/nginx.conf
                                 sed -i 's:# gzip: gzip:g' /etc/nginx/nginx.conf
+                                echo "In which directory should nginx create log files? ex /home (No slash at the end)"
+                                read answerdirlog
+                                echo "Are you sure that the log-dir should be $answerdirlog? (yes/no)"
+                                echo "Even if it's /dev/null the script will accept it."
+                                read suredirlog
+                                if [ "$answerdirlog" != "yes" ] || [ "$answerdirlog" != "no" ]; then
+                                        echo "Answer was not yes or no, aborting."
+                                        echo "`get_log_date` Aborting setting up nginx because answer for logging directory was not valid." >> $logdir
+                                elif [ "$answerdirlog" = "no" ]; then
+                                        echo "In which directory should nginx create log files? ex /home (No slash at the end)"
+                                        read answerdirlog
+                                        echo "Are you sure that the log-dir should be $answerdirlog? (yes/no)"
+                                        echo "Even if it's /dev/null the script will accept it."
+                                        read suredirlog
+                                        if [ "$answerdirlog" = "no" ]; then
+                                                echo "Aborting because answer was two times no"
+                                                echo "`get_log_date` Aborting setting up nginx because answer for logging directory was two times no." >> $logdir
+                                                exit 666
+                                        fi
+                                else
+                                        sed -i "s:access_log.*:access_log $answerdirlog/access.log:g" /etc/nginx/nginx.conf
+                                        sed -i "s:error_log.*:error_log $answerdirlog/error.log:g" /etc/nginx/nginx.conf
+                                        sed -i "s:SAMPLELOGDIR:$answerdirlog:g" $configsamples/nginx/default.conf
+                                fi
+                                sed -i "s:LOGDIRFORNGINX:$answerdirlog:g"
                                 echo "Configured nginx"
                                 echo "`get_log_date` Configured nginx for command: managelinux server setup nginx" >> $logdir
                                 service nginx restart
