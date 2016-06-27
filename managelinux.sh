@@ -7,6 +7,7 @@ path_to_nginx_work="/home/web/"
 configsamples="/home/samples"
 proftpd_sqlite3_database_lcoation="/var/www/proftpd/proftpddatabase.db"
 mysqlrootpw="OhMyGodThatDatabasePWissoHArd!!"
+premiumcostumorenabled=true
 
 function get_log_date(){
         date "+[%d/%m/%y   %H:%M:%S]"
@@ -354,48 +355,65 @@ function nginx() {
                 premium_costumer=$4
                 is_wordpress=$3
                 domainname_add_nginx=$2
-                if ( [ "$premium_costumer" = "" ] || ( [ "$premium_costumer" != "yes" ] && [ "$premium_costumer" != "no" ] )) || ( [ "$is_wordpress" = "" ] || ([ "$is_wordpress" != "wordpress" ] && [ "$is_wordpress" != "other" ] && [ "$is_wordpress" != "ftp" ])) || ( [ "$domainname_add_nginx" = "" ] || [ "$(echo $domainname_add_nginx | grep -F '.' | wc -l)" != "1" ] ) || ( [ "$mysqlneed_add_nginx" != "yes" ] && [ "$mysqlneed_add_nginx" != "no" ] ); then
-                        echo "`get_log_date` CRITICAL: Abort Action /nginx add/ because one ore more variable/s was/were not valid" >> $logdir
-                        print_nginx_help
-                        exit 5
+                if [ "$premiumenabled" = "true" ]; then
+                        if ( [ "$premium_costumer" = "" ] || ( [ "$premium_costumer" != "yes" ] && [ "$premium_costumer" != "no" ] )) || ( [ "$is_wordpress" = "" ] || ([ "$is_wordpress" != "wordpress" ] && [ "$is_wordpress" != "other" ] && [ "$is_wordpress" != "ftp" ])) || ( [ "$domainname_add_nginx" = "" ] || [ "$(echo $domainname_add_nginx | grep -F '.' | wc -l)" != "1" ] ) || ( [ "$mysqlneed_add_nginx" != "yes" ] && [ "$mysqlneed_add_nginx" != "no" ] ); then
+                                echo "`get_log_date` CRITICAL: Abort Action /nginx add/ because one ore more variable/s was/were not valid" >> $logdir
+                                print_nginx_help
+                                exit 5
+                        fi
+                elif [ "$premiumenabled" = "false" ]; then
+                        if ( [ "$is_wordpress" = "" ] || ([ "$is_wordpress" != "wordpress" ] && [ "$is_wordpress" != "other" ] && [ "$is_wordpress" != "ftp" ])) || ( [ "$domainname_add_nginx" = "" ] || [ "$(echo $domainname_add_nginx | grep -F '.' | wc -l)" != "1" ] ) || ( [ "$mysqlneed_add_nginx" != "yes" ] && [ "$mysqlneed_add_nginx" != "no" ] ); then
+                                echo "`get_log_date` CRITICAL: Abort Action /nginx add/ because one ore more variable/s was/were not valid" >> $logdir
+                                print_nginx_help
+                                exit 5
+                        fi
                 else
                         mkdir -p $path_to_nginx_work$domainname_add_nginx/htdocs
                         echo "`get_log_date` Created nginx working directory for $domainname_add_nginx" >> $logdir
-                        if [ "$is_wordpress" = "wordpress" ]; then
-                                create_nginx_conf_add $domainname_add_nginx $is_wordpress $premium_costumer
-                                wget -P $path_to_nginx_work$domainname_add_nginx/htdocs https://de.wordpress.org/latest-de_DE.zip
-                                unzip $path_to_nginx_work$domainname_add_nginx/htdocs/latest-de_DE.zip -d $path_to_nginx_work$domainname_add_nginx/htdocs/
-                                mv $path_to_nginx_work$domainname_add_nginx/htdocs/wordpress/* $path_to_nginx_work$domainname_add_nginx/htdocs/
-                                rm -rf $path_to_nginx_work$domainname_add_nginx/htdocs/wordpress
-                                rm $path_to_nginx_work$domainname_add_nginx/htdocs/latest-de_DE.zip 
-                                find $path_to_nginx_work$domainname_add_nginx/htdocs -type d -exec chmod 775 {} +
-                                find $path_to_nginx_work$domainname_add_nginx/htdocs -type f -exec chmod 664 {} +
-                                chown -R web1:web1 $path_to_nginx_work$domainname_add_nginx/htdocs
-                                if [ "$mysqlneed_add_nginx" = "yes" ]; then
-                                        mysqlpw=`pwgen -s -1 50`
-                                        mysqlname=$(echo $domainname_add_nginx | tr '.' ' ' | sed 's/ //g' | sed 's/-//g')
-                                        mysqluser=`pwgen -1 -0 15`
-                                        mysql_create_database $mysqlname $mysqlpw $mysqluser
-                                        create_wp_config_database_name_pw $mysqlname $mysqlpw $mysqluser $domainname_add_nginx
-                                        service nginx reload
-                                        echo "`get_log_date` Reloaded nginx" >> $logdir
-                                fi
-                        elif [ "$is_wordpress" = "other" ]; then
-                                #HIER FEHLT WAS!!!!!!! $premium_costumer
-                                create_nginx_conf_add $domainname_add_nginx $is_wordpress $premium_costumer
-                                find $path_to_nginx_work$domainname_add_nginx/htdocs -type d -exec chmod 775 {} +
-                                find $path_to_nginx_work$domainname_add_nginx/htdocs -type f -exec chmod 664 {} +
-                                chown -R web1:web1 $path_to_nginx_work$domainname_add_nginx/htdocs
-                                service nginx reload  
-                                echo "`get_log_date` Reloaded nginx" >> $logdir
-                        #elif FTP!!!!!!!!!!!!!11
+                fi
+                if [ "$is_wordpress" = "wordpress" ]; then
+                        if [ "$is_wordpress" = "wordpress" ] && ( [ "$premiumenabled" = "false" ] || [ "$premium_costumer" = "no" ] ); then
+                                create_nginx_conf_add $domainname_add_nginx $is_wordpress no
+                        elif [ "$is_wordpress" = "wordpress" ] && ( [ "$premiumenabled" = "true" ] && [ "$premium_costumer" = "yes" ] ); then
+                                create_nginx_conf_add $domainname_add_nginx $is_wordpress yes
                         fi
+                        wget -P $path_to_nginx_work$domainname_add_nginx/htdocs https://de.wordpress.org/latest-de_DE.zip
+                        unzip $path_to_nginx_work$domainname_add_nginx/htdocs/latest-de_DE.zip -d $path_to_nginx_work$domainname_add_nginx/htdocs/
+                        mv $path_to_nginx_work$domainname_add_nginx/htdocs/wordpress/* $path_to_nginx_work$domainname_add_nginx/htdocs/
+                        rm -rf $path_to_nginx_work$domainname_add_nginx/htdocs/wordpress
+                        rm $path_to_nginx_work$domainname_add_nginx/htdocs/latest-de_DE.zip 
+                        find $path_to_nginx_work$domainname_add_nginx/htdocs -type d -exec chmod 775 {} +
+                        find $path_to_nginx_work$domainname_add_nginx/htdocs -type f -exec chmod 664 {} +
+                        chown -R web1:web1 $path_to_nginx_work$domainname_add_nginx/htdocs
+                        if [ "$mysqlneed_add_nginx" = "yes" ]; then
+                                mysqlpw=`pwgen -s -1 50`
+                                mysqlname=$(echo $domainname_add_nginx | tr '.' ' ' | sed 's/ //g' | sed 's/-//g')
+                                mysqluser=`pwgen -1 -0 15`
+                                mysql_create_database $mysqlname $mysqlpw $mysqluser
+                                create_wp_config_database_name_pw $mysqlname $mysqlpw $mysqluser $domainname_add_nginx
+                                service nginx reload
+                                echo "`get_log_date` Reloaded nginx" >> $logdir
+                        fi
+                elif [ "$is_wordpress" = "other" ]; then
+                        if [ "$is_wordpress" = "wordpress" ] && ( [ "$premiumenabled" = "false" ] || [ "$premium_costumer" = "no" ] ); then
+                                create_nginx_conf_add $domainname_add_nginx $is_wordpress no
+                        elif [ "$is_wordpress" = "wordpress" ] && ( [ "$premiumenabled" = "true" ] && [ "$premium_costumer" = "yes" ] ); then
+                                create_nginx_conf_add $domainname_add_nginx $is_wordpress yes
+                        fi
+                        create_nginx_conf_add $domainname_add_nginx $is_wordpress $premium_costumer
+                        find $path_to_nginx_work$domainname_add_nginx/htdocs -type d -exec chmod 775 {} +
+                        find $path_to_nginx_work$domainname_add_nginx/htdocs -type f -exec chmod 664 {} +
+                        chown -R web1:web1 $path_to_nginx_work$domainname_add_nginx/htdocs
+                        service nginx reload  
+                        echo "`get_log_date` Reloaded nginx" >> $logdir
+                        #elif FTP!!!!!!!!!!!!!11
+                fi
                         echo '
                         ATTENTION!!!
 
                         IF YOU WANT TO ADD FTP TOO YOU HAVE TO DO THIS WITH THE managelinux proftpd add COMMAND!!!
                         '
-                fi
+        fi
         elif [ "$action" = "delete" ]; then
                 domainname_delete_nginx=$2
                 if ( [ "$domainname_delete_nginx" = "" ] || [ "$(echo $domainname_delete_nginx | grep -F '.' | wc -l)" != "1" ] ); then
