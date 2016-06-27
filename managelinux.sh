@@ -7,7 +7,7 @@ path_to_nginx_work="/home/web/"
 configsamples="/home/samples"
 proftpd_sqlite3_database_lcoation="/var/www/proftpd/proftpddatabase.db"
 mysqlrootpw="OhMyGodThatDatabasePWissoHArd!!"
-premiumcostumorenabled=true
+premiumenabled=true
 
 function get_log_date(){
         date "+[%d/%m/%y   %H:%M:%S]"
@@ -355,13 +355,13 @@ function nginx() {
                 premium_costumer=$4
                 is_wordpress=$3
                 domainname_add_nginx=$2
-                if [ "$premiumenabled" = "true" ]; then
+                if [ "$premiumcostumorenabled" = "true" ]; then
                         if ( [ "$premium_costumer" = "" ] || ( [ "$premium_costumer" != "yes" ] && [ "$premium_costumer" != "no" ] )) || ( [ "$is_wordpress" = "" ] || ([ "$is_wordpress" != "wordpress" ] && [ "$is_wordpress" != "other" ] && [ "$is_wordpress" != "ftp" ])) || ( [ "$domainname_add_nginx" = "" ] || [ "$(echo $domainname_add_nginx | grep -F '.' | wc -l)" != "1" ] ) || ( [ "$mysqlneed_add_nginx" != "yes" ] && [ "$mysqlneed_add_nginx" != "no" ] ); then
                                 echo "`get_log_date` CRITICAL: Abort Action /nginx add/ because one ore more variable/s was/were not valid" >> $logdir
                                 print_nginx_help
                                 exit 5
                         fi
-                elif [ "$premiumenabled" = "false" ]; then
+                elif [ "$premiumcostumorenabled" = "false" ]; then
                         if ( [ "$is_wordpress" = "" ] || ([ "$is_wordpress" != "wordpress" ] && [ "$is_wordpress" != "other" ] && [ "$is_wordpress" != "ftp" ])) || ( [ "$domainname_add_nginx" = "" ] || [ "$(echo $domainname_add_nginx | grep -F '.' | wc -l)" != "1" ] ) || ( [ "$mysqlneed_add_nginx" != "yes" ] && [ "$mysqlneed_add_nginx" != "no" ] ); then
                                 echo "`get_log_date` CRITICAL: Abort Action /nginx add/ because one ore more variable/s was/were not valid" >> $logdir
                                 print_nginx_help
@@ -372,9 +372,9 @@ function nginx() {
                         echo "`get_log_date` Created nginx working directory for $domainname_add_nginx" >> $logdir
                 fi
                 if [ "$is_wordpress" = "wordpress" ]; then
-                        if [ "$is_wordpress" = "wordpress" ] && ( [ "$premiumenabled" = "false" ] || [ "$premium_costumer" = "no" ] ); then
+                        if [ "$is_wordpress" = "wordpress" ] && ( [ "$premiumcostumorenabled" = "false" ] || [ "$premium_costumer" = "no" ] ); then
                                 create_nginx_conf_add $domainname_add_nginx $is_wordpress no
-                        elif [ "$is_wordpress" = "wordpress" ] && ( [ "$premiumenabled" = "true" ] && [ "$premium_costumer" = "yes" ] ); then
+                        elif [ "$is_wordpress" = "wordpress" ] && ( [ "$premiumcostumorenabled" = "true" ] && [ "$premium_costumer" = "yes" ] ); then
                                 create_nginx_conf_add $domainname_add_nginx $is_wordpress yes
                         fi
                         wget -P $path_to_nginx_work$domainname_add_nginx/htdocs https://de.wordpress.org/latest-de_DE.zip
@@ -395,9 +395,9 @@ function nginx() {
                                 echo "`get_log_date` Reloaded nginx" >> $logdir
                         fi
                 elif [ "$is_wordpress" = "other" ]; then
-                        if [ "$is_wordpress" = "wordpress" ] && ( [ "$premiumenabled" = "false" ] || [ "$premium_costumer" = "no" ] ); then
+                        if [ "$is_wordpress" = "wordpress" ] && ( [ "$premiumcostumorenabled" = "false" ] || [ "$premium_costumer" = "no" ] ); then
                                 create_nginx_conf_add $domainname_add_nginx $is_wordpress no
-                        elif [ "$is_wordpress" = "wordpress" ] && ( [ "$premiumenabled" = "true" ] && [ "$premium_costumer" = "yes" ] ); then
+                        elif [ "$is_wordpress" = "wordpress" ] && ( [ "$premiumcostumorenabled" = "true" ] && [ "$premium_costumer" = "yes" ] ); then
                                 create_nginx_conf_add $domainname_add_nginx $is_wordpress yes
                         fi
                         create_nginx_conf_add $domainname_add_nginx $is_wordpress $premium_costumer
