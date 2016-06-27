@@ -7,3 +7,4 @@
 - ADD feature to disable or enable premium costumers (FIXED)
 - Add function to disable or enable ftp manage interface
 - cleanup this whole mess and create a useful structure
+- Improve nginx issue disable functions.
