@@ -9,3 +9,4 @@
 - cleanup this whole mess and create a useful structure
 - Improve nginx issue disable functions.
 - Change logrotate log directory because user can set log dir personal.
+- Think about a solution to be able to delete one ftp account (maybe show up all and select number) and disable/enable function
