@@ -6,8 +6,36 @@ path_to_nginx_conf="/home/etc/nginx/sites/"
 path_to_nginx_work="/home/web/"
 configsamples="/home/samples"
 proftpd_sqlite3_database_lcoation="/var/www/proftpd/proftpddatabase.db"
-mysqlrootpw="OhMyGodThatDatabasePWissoHArd!!"
+mysql_root_pw="OhMyGodThatDatabasePWissoHArd!!"
 premiumenabled=true
+
+function setup_script(){
+        if [ ! -d $configsamples ]; then
+                echo "Script does not seem do be setup or some directories changed. I will start the script setup, is that okay? [yes]"
+                read $answer
+                if [ "$answer" != "yes" ]; then
+                        echo "Cannot work with non-setup Script. Aborting any actions."
+                        exit 555
+                else
+                        if [ ! -f "`which git`" ]; then
+                                echo "You need git to apply features. Should i install it?"
+                                read $answer
+                                if [ "$answer" != "yes" ]; then
+                                        echo "Cannot work with non-setup Script. Aborting any actions."
+                                        exit 555
+                                else
+                                        apt-get -qq install git
+                                fi
+                        fi
+                        mkdir -p $configsamples
+                        cd $configsamples
+                        git clone https://github.com/Kedakai/managelinux
+                        rm *
+                        mv configsamples/* .
+                        rm -rf configsamples
+                fi
+        fi
+}
 
 function get_log_date(){
         date "+[%d/%m/%y   %H:%M:%S]"
@@ -622,6 +650,8 @@ function proftpd () {
                 exit 1
         fi
 }
+
+setup_script
 
 if [ "$1" = "nginx" ]; then
         nginx $2 $3 $4 $5 $6
