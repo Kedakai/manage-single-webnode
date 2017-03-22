@@ -1,13 +1,23 @@
 #!/bin/bash
 
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root"
+   exit 74
+fi
+
 service=$1
-logdir="/var/log/managelinux.log"
+logdir="/var/log/manage-single-webnode.log"
 path_to_nginx_conf="/home/etc/nginx/sites/"
 path_to_nginx_work="/home/web/"
 configsamples="/home/samples"
 proftpd_sqlite3_database_lcoation="/var/www/proftpd/proftpddatabase.db"
 mysql_root_pw="OhMyGodThatDatabasePWissoHArd!!"
-premiumenabled=true
+
+#################################################################################
+#The Premium Feature was disabled in 0.1 because it's useless in this state.    #
+#premiumenabled=true                                                            #
+#################################################################################
+
 
 function setup_script(){
         if [ ! -d $configsamples ]; then
@@ -29,10 +39,11 @@ function setup_script(){
                         fi
                         mkdir -p $configsamples
                         cd $configsamples
-                        git clone https://github.com/Kedakai/managelinux
+                        git clone https://github.com/Kedakai/manage-single-webnode
                         rm *
                         mv configsamples/* .
                         rm -rf configsamples
+                        ########  NACH /usr/local/sbin einbauen. Das ist wesentlich schöner (package bauen?) Und bitte auch schöner.
                 fi
         fi
 }
@@ -42,53 +53,55 @@ function get_log_date(){
 }
 
 function print_main_help() {
-        echo '%%managelinux%%
+        echo '%%manage-single-webnode%%
 
                 The following commands are available:
 
-                managelinux nginx
-                managelinux proftpd
-                managelinux server
+                manage-single-webnode nginx
+                manage-single-webnode proftpd
+                manage-single-webnode server
 
                 If you want to see help for this command type help abter above commands'
 }
 
 function print_nginx_help() {
-        echo '%%managelinux nginx%%
+        echo '%%manage-single-webnode nginx%%
 
                 The following Commands are available:
 
-                managelinux nginx nginx add $DOMAINNAME $IS_WORDPRESS $PREMIUM_COSTUMER $MYSQL_NEEDED
-                EXAMPLE: managelinux nginx add google.de wordpress yes yes
-                         managelinux nginx add google.com other no no
+                manage-single-webnode nginx add $DOMAINNAME $IS_WORDPRESS $PREMIUM_COSTUMER $MYSQL_NEEDED
+                EXAMPLE: manage-single-webnode nginx add google.de wordpress yes yes
+                         manage-single-webnode nginx add google.com other no no
                          
                         !! $MYSQL_NEEDED DOES ONLY TAKES EFFECT WITH $IS_WORDPRESS=yes !!
 
 
-                managelinux nginx delete $DOMAINNAME
-                EXAMPLE: managelinux delete google.de
+                manage-single-webnode nginx delete $DOMAINNAME
+                EXAMPLE: manage-single-webnode delete google.de
 
-                managelinux nginx disable $DOMAINNAME
-                EXAMPLE: managelinux disable google.de one/all
+                # DISABLE DELETE ALL?!
 
-                managelinux nginx enable $DOMAINNAME
-                EXAMPLE: managelinux enable google.de'
+                manage-single-webnode nginx disable $DOMAINNAME
+                EXAMPLE: manage-single-webnode disable google.de one/all
+
+                manage-single-webnode nginx enable $DOMAINNAME
+                EXAMPLE: manage-single-webnode enable google.de'
 }
 
 
 function print_proftpd_help() {
-        echo '%%managelinux proftpd%%
+        echo '%%manage-single-webnode proftpd%%
                  
                 The following Commands are available:
 
-                managelinux proftpd add $DOMAINNAME
-                EXAMPLE: managelinux proftpd add google.de
+                manage-single-webnode proftpd add $DOMAINNAME
+                EXAMPLE: manage-single-webnode proftpd add google.de
 
-                managelinux proftpd delete $DOMAINNAME
-                EXAMPLE: managelinux proftpd delete google.de
+                manage-single-webnode proftpd delete $DOMAINNAME
+                EXAMPLE: manage-single-webnode proftpd delete google.de
 
-                managelinux proftpd add $DOMAINNAME user $USERNAME
-                EXAMPLE: managelinux add google.de user lalala'
+                manage-single-webnode proftpd add $DOMAINNAME user $USERNAME
+                EXAMPLE: manage-single-webnode add google.de user lalala'
 }
 
 function disable_all_nginx_confs() {
@@ -121,7 +134,7 @@ function create_nginx_conf_add() {
                 elif [ "$(echo "$is_wordpress_create_nginx_conf" | tr '.' '\n' |grep "ftp-manage" | wc -l)" != "1" ]; then
                         echo ""
                         echo 'DOMAINNAME NOT VALID. IT HAST TO BE ftp-manage.$COSTUMER'
-                        echo 'Please do ONLY use TLD (ex. lunaticstudio.net) in managelinux proftpd add command! It will be set to ftp-manage.$COSTUMER'
+                        echo 'Please do ONLY use TLD (ex. google.de) in manage-single-webnode proftpd add command! It will be set to ftp-manage.$COSTUMER'
                         exit 5
                 fi
 
@@ -230,14 +243,14 @@ function create_wp_config_database_name_pw() {
 
 function print_server_help() {
 
-        echo '%%managelinux server %% 
+        echo '%%manage-single-webnode server %% 
 
                 AVAILABLE COMMANDS ARE:
 
-                managelinux server setup php5
-                managelinux server setup nginx
-                managelinux server setup logrotate'
-        echo "`get_log_date` Printed help for managelinux server" >> $logdir
+                manage-single-webnode server setup php5
+                manage-single-webnode server setup nginx
+                manage-single-webnode server setup logrotate'
+        echo "`get_log_date` Printed help for manage-single-webnode server" >> $logdir
 }
 
 function server() {
@@ -283,7 +296,7 @@ function server() {
                                 echo "`get_log_date` Restarted php5 because of configuration" >> $logdir
                         else
                                 echo "It seems like php5 was configured already..."
-                                echo "`get_log_date` Avorted managelinux server setup php5 because it seems like php5 was configured already" >> $logdir
+                                echo "`get_log_date` Aborted manage-single-webnode server setup php5 because it seems like php5 was configured already" >> $logdir
                                 exit 555
                         fi
                 fi
@@ -342,12 +355,12 @@ function server() {
                                 fi
                                 sed -i "s:LOGDIRFORNGINX:$answerdirlog:g"
                                 echo "Configured nginx"
-                                echo "`get_log_date` Configured nginx for command: managelinux server setup nginx" >> $logdir
+                                echo "`get_log_date` Configured nginx for command: manage-single-webnode server setup nginx" >> $logdir
                                 service nginx restart
                                 echo "`get_log_date` Restarted nginx" >> $logdir
                         else
                                 echo "It seems nginx was configured already..."
-                                echo "`get_log_date` Avorted managelinux server setup nginx because it seems like nginx was configured already" >> $logdir
+                                echo "`get_log_date` Aborted manage-single-webnode server setup nginx because it seems like nginx was configured already" >> $logdir
                                 exit 555
                         fi
                 fi
@@ -439,7 +452,7 @@ function nginx() {
                         echo '
                         ATTENTION!!!
 
-                        IF YOU WANT TO ADD FTP TOO YOU HAVE TO DO THIS WITH THE managelinux proftpd add COMMAND!!!
+                        IF YOU WANT TO ADD FTP TOO YOU HAVE TO DO THIS WITH THE manage-single-webnode proftpd add COMMAND!!!
                         '
         fi
         elif [ "$action" = "delete" ]; then
@@ -451,7 +464,7 @@ function nginx() {
                 fi
 
                 echo '
-                ATTENTION!! ARE YOU SURE YOU SHOULD DO THAT? IF YOU ARE NOT PLEASE USE managelinux nginx disable COMMAND!'
+                ATTENTION!! ARE YOU SURE YOU SHOULD DO THAT? IF YOU ARE NOT PLEASE USE manage-single-webnode nginx disable COMMAND!'
                 echo ""
                 echo "Are you sure? (yes/no)"
                 read sure
@@ -477,7 +490,7 @@ function nginx() {
                         echo '
                         ATTENTION!!!
 
-                        YOU HAVE TO DELETE FTP FOR THIS COSTUMER. USE managelinux proftpd delete COMMAND!!!
+                        YOU HAVE TO DELETE FTP FOR THIS COSTUMER. USE manage-single-webnode proftpd delete COMMAND!!!
                         IF A DATABASED WAS USED FOR THIS COSTUMER AND IT WAS NOT WORDPRESS HE WAS USING YOU
                         GAVE TO DELETE IT MANUALLY!!!!!!!!!!!!
                         '
@@ -536,7 +549,7 @@ function nginx() {
                         echo '
                         ATTENTION!!!
 
-                        YOU HAVE TO DISABLE FTP FOR THIS COSTUMER. USE managelinux proftpd delete COMMAND!!!
+                        YOU HAVE TO DISABLE FTP FOR THIS COSTUMER. USE manage-single-webnode proftpd delete COMMAND!!!
                         '
                         exit 0
         elif [ "$action" = "enable" ]; then
@@ -584,7 +597,7 @@ function nginx() {
                 echo '
                         ATTENTION!!!
 
-                        YOU HAVE TO ADD FTP FOR THIS COSTUMER. USE managelinux proftpd add COMMAND!!!
+                        YOU HAVE TO ADD FTP FOR THIS COSTUMER. USE manage-single-webnode proftpd add COMMAND!!!
                         '
                         exit 0
         else
