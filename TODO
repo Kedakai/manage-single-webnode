@@ -2,8 +2,8 @@ Undefiened Date
 Dev before 0.1
 
 - Update help so it prints right things
-- Create function that creates folder for config-samples
-- Let the script check it's own variables on each start
+- Create function that creates folder for config-samples (FIXED)
+- Let the script check it's own variables on each start (MAYBE LATER)
 - Add function that setups the script properly
 - Check functionality of everything
 - Edit parts where comments left
