@@ -664,6 +664,13 @@ function proftpd () {
         fi
 }
 
+function check_debug() {
+        message="$1"
+        if [ "$debug" = "1" ]; then
+                echo "$message"
+        fi
+}
+
 setup_script
 
 if [ "$1" = "nginx" ]; then
