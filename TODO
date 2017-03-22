@@ -1,3 +1,6 @@
+Undefiened Date
+Dev before 0.1
+
 - Update help so it prints right things
 - Create function that creates folder for config-samples
 - Let the script check it's own variables on each start
@@ -10,3 +13,32 @@
 - Improve nginx issue disable functions.
 - Change logrotate log directory because user can set log dir personal.
 - Think about a solution to be able to delete one ftp account (maybe show up all and select number) and disable/enable function
+
+
+22-03-2017
+Development for version 0.1 started
+
+- Built into /usr/sbin/local and make setup more beatiful
+- nginx_help does not contain delete or disable all
+- Same as above for proftpd
+- Built Feature to disable and enable FTP-Accounts without deleting them (Maybe table with (passbefore))
+- nginx add with unlimited domainnames and ask for primary domainname after entered. (Maybe for loop until empty, we'll see..)
+- Translate into german (set variable with language)
+- Add a lot of comments
+- Code beautifing
+- Add verbose mode
+- Search if it is necessary to look if anything for php5 is installed except of base php5 (Add support for other versions too.. difine php version in variable)
+- Check for language...
+- Make output more specific
+- Make sed's more dynamic 
+- Add force options
+- Add support for mariadb (Maybe other db's too....)
+- Add Support for more CMS'es
+- Add Support for FTP-Manage Interface (Now the List is creeping me out...)
+- Review FTP-Manage for security leaks. (This is quite important though....)
+  Maybe we should look into a better version for this. Maybe docker. maybe not.
+- Make FTP-Interface more beautiful (CSS and so one..)
+- nginx should become an $reason disabled for domainname. (This will be funny tooo......)
+- We need an reenable function for this too.
+- Add function to delete single ftp-users (I really don't know if this is needed. Delete only admin user should not be necessary)
+- 
