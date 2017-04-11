@@ -655,6 +655,9 @@ function nginx() {
                                         mv $path_to_nginx_conf$domainname_block_nginx.conf $path_to_nginx_conf$domainname_block_nginx.conf.off
                                         echo "`get_log_date` Disabled $domainname_block_nginx in nginx" >> $logdir
                                         cp $configsamples/nginx/default_issues.conf $path_to_nginx_conf$domainname_block_nginx-blocked.conf
+                                        if [ "$used_reason" = "none" ]; then
+                                                sed -i "s:REASON:there was some problem occuring.:g" $path_to_nginx_conf$domainname_block_nginx-blocked.conf
+                                        fi
                                         sed -i "s:REASON:$used_reason:g" $path_to_nginx_conf$domainname_block_nginx-blocked.conf
                                         sed -i "s:ROOTDOMAINNAME:$domainname_block_nginx:g" $path_to_nginx_conf$domainname_block_nginx-blocked.conf
                                         service nginx reload
@@ -663,6 +666,9 @@ function nginx() {
                         elif [ "`echo $multiple_or_one_block_nginx`" = "all" ]; then
                                 disable_all_nginx_confs $domainname_block_nginx
                                 cp $configsamples/nginx/default_issues.conf $path_to_nginx_conf$domainname_block_nginx-blocked.conf
+                                if [ "$used_reason" = "none" ]; then
+                                        sed -i "s:REASON:there was some problem occuring.:g" $path_to_nginx_conf$domainname_block_nginx-blocked.conf
+                                fi
                                 sed -i "s:REASON:$used_reason:g" $path_to_nginx_conf$domainname_block_nginx-blocked.conf
                                 sed -i "s:ROOTDOMAINNAME:.$domainname_block_nginx:g" $path_to_nginx_conf$domainname_block_nginx-blocked.conf
                                 service nginx reload
