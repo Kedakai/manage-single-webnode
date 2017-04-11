@@ -1,5 +1,5 @@
 Undefiened Date
-Dev before 0.1
+Dev before 0.2
 
 - Update help so it prints right things
 - Create function that creates folder for config-samples (FIXED)
@@ -13,10 +13,10 @@ Dev before 0.1
 - Improve nginx issue disable functions.
 - Change logrotate log directory because user can set log dir personal.
 - Think about a solution to be able to delete one ftp account (maybe show up all and select number) and disable/enable function
-
+- For fucks sake... Add SSL and Letsencrypt ...
 
 22-03-2017
-Development for version 0.1 started
+Development for version 0.3
 
 - Built into /usr/sbin/local and make setup more beatiful
 - nginx_help does not contain delete or disable all
