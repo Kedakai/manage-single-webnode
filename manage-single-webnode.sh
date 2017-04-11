@@ -81,6 +81,20 @@ function setup_script(){
         fi
 }
 
+function check_quiet_and_verbose_lvl() {
+        message="$1"
+        mode="$2"
+        if [ "$verbose_level" = "0" ] || [ "$verbose_level" = "quiet" ]; then
+               :
+        elif [ "$mode" = "1" ] && [ "$verbose_level" -me "1" ]; then
+                echo "$message"
+        elif [ "$mode" = "2" ] && [ "$verbose_level" -me "2" ]; then
+                echo "$message"
+        elif [ "$mode" = "3" ] && [ "$verbose_level" -me "3" ]; then
+                echo "$message"
+        fi
+}
+
 function print_version() {
         echo "manage-single-webnode v0.2"
 }
@@ -632,11 +646,29 @@ function nginx() {
                                 fi
                         fi
                         used_reason=$( echo $init_reason )
-                        #
-                        #
-                        # Do Shit right here ... SED File, reason=none -> default
-                        #
-                        #
+                        if [ "$multiple_or_one_block_nginx" = "one" ]; then
+                                if [ ! -f $path_to_nginx_conf$domainname_block_nginx.conf ]; then
+                                        echo "Aborted because config File doesnt exist or costumer is already disabled"
+                                        echo "`get_log_date` Abordet because Costumer config File for nginx was not found" >> $logdir
+                                        exit 6
+                                else
+                                        mv $path_to_nginx_conf$domainname_block_nginx.conf $path_to_nginx_conf$domainname_block_nginx.conf.off
+                                        echo "`get_log_date` Disabled $domainname_block_nginx in nginx" >> $logdir
+                                        cp $configsamples/nginx/default_issues.conf $path_to_nginx_conf$domainname_block_nginx-blocked.conf
+                                        sed -i "s:REASON:$used_reason:g" $path_to_nginx_conf$domainname_block_nginx-blocked.conf
+                                        sed -i "s:ROOTDOMAINNAME:$domainname_block_nginx:g" $path_to_nginx_conf$domainname_block_nginx-blocked.conf
+                                        service nginx reload
+                                        echo "`get_log_date` Reloaded nginx" >> $logdir
+                                fi
+                        elif [ "`echo $multiple_or_one_block_nginx`" = "all" ]; then
+                                disable_all_nginx_confs $domainname_block_nginx
+                                cp $configsamples/nginx/default_issues.conf $path_to_nginx_conf$domainname_block_nginx-blocked.conf
+                                sed -i "s:REASON:$used_reason:g" $path_to_nginx_conf$domainname_block_nginx-blocked.conf
+                                sed -i "s:ROOTDOMAINNAME:.$domainname_block_nginx:g" $path_to_nginx_conf$domainname_block_nginx-blocked.conf
+                                service nginx reload
+                        else
+                                print_nginx_help
+                        fi
                 fi
         elif [ "$action" = "enable" ]; then
                 domainname_enable_nginx=$2
