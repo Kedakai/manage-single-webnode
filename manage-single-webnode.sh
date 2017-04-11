@@ -6,16 +6,48 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 service=$1
+
+#################################################################################
+#                                                                               #
+#               Here is the config for logging                                  #                                               
+#                                                                               #
+#################################################################################
+
 logdir="/var/log/manage-single-webnode.log"
+
+#################################################################################
+#                                                                               #
+#               Here is the config for needed directories                       #                                               
+#                                                                               #
+#################################################################################
+
 path_to_nginx_conf="/home/etc/nginx/sites/"
 path_to_nginx_work="/home/web/"
 configsamples="/home/samples"
+
+#################################################################################
+#                                                                               #
+#               Here is the config for database                                 #                                               
+#                                                                               #
+#################################################################################
+
 proftpd_sqlite3_database_lcoation="/var/www/proftpd/proftpddatabase.db"
 mysql_root_pw="OhMyGodThatDatabasePWissoHArd!!"
 
 #################################################################################
+#                                                                               #
+#               Here is the config for premium costumers                        #
+#                                                                               #
+#################################################################################
+
+premium_costumer_speed=10000  # kbit/s right here
+only_premium_ftp_interface=false
+
+#################################################################################
 #The Premium Feature was disabled in 0.1 because it's useless in this state.    #
 #premiumenabled=true                                                            #
+#                                                                               #
+#                               Version 0.1                                     #
 #################################################################################
 
 function setup_script(){
@@ -27,7 +59,7 @@ function setup_script(){
                         exit 555
                 else
                         if [ ! -f "`which git`" ]; then
-                                echo "You need git to apply features. Should i install it?"
+                                echo "You need git to apply features. Should i install it? [yes]"
                                 read $answer
                                 if [ "$answer" != "yes" ]; then
                                         echo "Cannot work with non-setup Script. Aborting any actions."
@@ -42,13 +74,18 @@ function setup_script(){
                         rm *
                         mv configsamples/* .
                         rm -rf configsamples
-                        mv `pwd`/manage-single-webnode.sh /usr/local/sbin/manage-single-webnode
+                        cp `pwd`/manage-single-webnode.sh /usr/local/sbin/manage-single-webnode
+                        /bin/bash -c "sleep 5 ; rm manage-single-webnode.sh" &
                         ########  NACH /usr/local/sbin einbauen. Das ist wesentlich schöner (package bauen?) Und bitte auch schöner.
                 fi
         fi
 }
 
-function get_log_date(){
+function print_version() {
+        echo "manage-single-webnode v0.2"
+}
+
+function get_log_date() {
         date "+[%d/%m/%y   %H:%M:%S]"
 }
 
@@ -507,7 +544,7 @@ function nginx() {
                 fi
         elif [ "$action" = "disable" ]; then
                 domainname_disable_nginx=$2
-                because_of_issues=$3
+                multiple_or_one_disable_nginx=$3
                 echo $domainname_disable_nginx
                 if ( [ "$domainname_disable_nginx" = "" ] || [ "$(echo $domainname_disable_nginx | grep -F '.' | wc -l)" != "1" ] ); then
                         echo "`get_log_date` CRITICAL: Abort Action /nginx disable/ because one ore more variable/s was/were not valid" >> $logdir
@@ -520,15 +557,15 @@ function nginx() {
                         echo "`get_log_date` CRITICAL: Abort Action /nginx disable $domainname_disable_nginx/ because nginx conf for Costumer was not found" >> $logdir
                         echo "$domainname_disable_nginx does not exist or is already disabled!"
                         exit 5
-                elif [ "$(echo $because_of_issues)" != "" ]; then
-                        if [ "`echo $because_of_issues`" != "one" ] && [ "`echo $because_of_issues`" != "all" ]; then
+                elif [ "$(echo $multiple_or_one_disable_nginx)" != "" ]; then
+                        if [ "`echo $multiple_or_one_disable_nginx`" != "one" ] && [ "`echo $multiple_or_one_disable_nginx`" != "all" ]; then
                                 echo 'You can only use this command like this: nginx disable $domainname one/all'
                                 echo "`get_log_date` Action nginx disables because Variables were damaged (all/one)" >> $logdir
                                 exit 69
-                        elif [ "`echo $because_of_issues`" = "all" ]; then
+                        elif [ "`echo $multiple_or_one_disable_nginx`" = "all" ]; then
                                 disable_all_nginx_confs $domainname_disable_nginx
                                 service nginx reload
-                        elif [ "`echo $because_of_issues`" = "one" ]; then
+                        elif [ "`echo $multiple_or_one_disable_nginx`" = "one" ]; then
                                 if [ ! -f $path_to_nginx_conf$domainname_disable_nginx.conf ]; then
                                         echo "Aborted because config File doesnt exist or costumer is already disabled"
                                         echo "`get_log_date` Abordet because Costumer config File for nginx was not found" >> $logdir
@@ -553,12 +590,54 @@ function nginx() {
                 #       cp $configsamples/nginx_issues.conf $path_to_nginx_conf$domainname_disable_nginx.conf
                 #       sed -i 's/ROOTDOMAINNAME/$domainname_disable_nginx/g' 
                 #fi
-                        echo '
-                        ATTENTION!!!
+                echo '
+                ATTENTION!!!
 
-                        YOU HAVE TO DISABLE FTP FOR THIS COSTUMER. USE manage-single-webnode proftpd delete COMMAND!!!
-                        '
-                        exit 0
+                YOU HAVE TO DISABLE FTP FOR THIS COSTUMER. USE manage-single-webnode proftpd delete COMMAND!!!
+                '
+                exit 0
+        elif [ "$action" = "block" ];then
+                domainname_block_nginx=$2
+                multiple_or_one_block_nginx=$3
+                init_reason=$4
+                if ( [ "$domainname_disable_nginx" = "" ] || [ "$(echo $domainname_disable_nginx | grep -F '.' | wc -l)" != "1" ] ) || ( [ "$multiple_or_one_block_nginx" != "one" ] && [ "$multiple_or_one_block_nginx" != "all" ] ); then
+                        if [ "$init_reason" = "" ]; then
+                                echo "You didn't put a reason as a parameter. Do you want to set one? [yes/no]"
+                                echo "`get_log_date` no reason provided in /manage-single-webnode nginx block/ command. Asking for a string." >> $logdir
+                                read answer
+                                if [ "$answer" = "yes" ]; then
+                                        echo 'Please enter the reason. Following will be displayed at the URL: The webspace was deactivated because $reason'
+                                        read reason
+                                        echo "You entered $reason. Is that correct? [yes/no]"
+                                        read answer
+                                        if [ "$answer" = "yes" ]; then
+                                                used_reason=$( echo $reason )
+                                                echo "`get_log_date` set reason in /manage-single-webnode nginx block/ after aksing for it." >> $logdir
+                                        elif [ "$answer" = "no" ]; then
+                                                echo "Okay, then i'm terminating myself. Please restart."
+                                                echo "`get_log_date` answer was no after asking for reason in /manage-single-webnode nginx block/, so were ending right here" >> $logdir
+                                                exit 44
+                                        else
+                                                echo "No valid answer received. Terminating..."
+                                                echo "`get_log_date` answer was not valid after asking for reason in /manage-single-webnode nginx block/. Terminated." >> $logdir
+                                                print_nginx_help
+                                                echo "`get_log_date` printed nginx help." >> $logdir
+                                                exit 69
+                                        fi
+                                elif [ "$answer" = "no" ]; then
+                                        echo "Setting reason=none. Using standart blocked page."
+                                        used_reason=none
+                                else
+                                        print_nginx_help
+                                fi
+                        fi
+                        used_reason=$( echo $init_reason )
+                        #
+                        #
+                        # Do Shit right here ... SED File, reason=none -> default
+                        #
+                        #
+                fi
         elif [ "$action" = "enable" ]; then
                 domainname_enable_nginx=$2
                 enable_because_issue_resolved=$3
