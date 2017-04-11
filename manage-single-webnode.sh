@@ -18,7 +18,6 @@ mysql_root_pw="OhMyGodThatDatabasePWissoHArd!!"
 #premiumenabled=true                                                            #
 #################################################################################
 
-
 function setup_script(){
         if [ ! -d $configsamples ]; then
                 echo "Script does not seem do be setup or some directories changed. I will start the script setup, is that okay? [yes]"
@@ -43,6 +42,7 @@ function setup_script(){
                         rm *
                         mv configsamples/* .
                         rm -rf configsamples
+                        mv `pwd`/manage-single-webnode.sh /usr/local/sbin/manage-single-webnode
                         ########  NACH /usr/local/sbin einbauen. Das ist wesentlich schöner (package bauen?) Und bitte auch schöner.
                 fi
         fi
@@ -79,13 +79,13 @@ function print_nginx_help() {
                 manage-single-webnode nginx delete $DOMAINNAME
                 EXAMPLE: manage-single-webnode delete google.de
 
-                # DISABLE DELETE ALL?!
-
                 manage-single-webnode nginx disable $DOMAINNAME
-                EXAMPLE: manage-single-webnode disable google.de one/all
+                EXAMPLE: manage-single-webnode disable google.de (all)
 
                 manage-single-webnode nginx enable $DOMAINNAME
-                EXAMPLE: manage-single-webnode enable google.de'
+                EXAMPLE: manage-single-webnode enable google.de (all)
+
+                If you use all as $3 with enable/disable command, it will disable/enable all domain/subdomains matching the name you entered'
 }
 
 
@@ -101,7 +101,7 @@ function print_proftpd_help() {
                 EXAMPLE: manage-single-webnode proftpd delete google.de
 
                 manage-single-webnode proftpd add $DOMAINNAME user $USERNAME
-                EXAMPLE: manage-single-webnode add google.de user lalala'
+                EXAMPLE: manage-single-webnode proftpd add google.de user lalala'
 }
 
 function disable_all_nginx_confs() {
@@ -249,7 +249,9 @@ function print_server_help() {
 
                 manage-single-webnode server setup php5
                 manage-single-webnode server setup nginx
-                manage-single-webnode server setup logrotate'
+                manage-single-webnode server setup logrotate
+                manage-single-webnode server setup mysql'
+        
         echo "`get_log_date` Printed help for manage-single-webnode server" >> $logdir
 }
 
@@ -382,6 +384,11 @@ function server() {
                                 [ ! -f /var/run/nginx.pid ] || kill -USR1 `cat /var/run/nginx.pid`
                                 endscript
                                 }' > /etc/logrotate.d/nginx 
+                fi
+                if [ "$todo" = "mysql" ]; then
+                        echo "Setting up mysql. You will have to type some passwords in..."
+                        apt-get install -y mysql
+                        echo "Installed mysql."
                 fi
         else
                 print_server_help
@@ -661,13 +668,6 @@ function proftpd () {
         else
                 print_proftpd_help
                 exit 1
-        fi
-}
-
-function check_debug() {
-        message="$1"
-        if [ "$debug" = "1" ]; then
-                echo "$message"
         fi
 }
 
