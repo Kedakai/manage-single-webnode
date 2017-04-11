@@ -4,7 +4,7 @@ Dev before 0.2
 - Update help so it prints right things
 - Create function that creates folder for config-samples (FIXED)
 - Let the script check it's own variables on each start (MAYBE LATER)
-- Add function that setups the script properly
+- Add function that setups the script properly (FIXED)
 - Check functionality of everything
 - Edit parts where comments left
 - ADD feature to disable or enable premium costumers (FIXED)
@@ -41,4 +41,4 @@ Development for version 0.3
 - nginx should become an $reason disabled for domainname. (This will be funny tooo......)
 - We need an reenable function for this too.
 - Add function to delete single ftp-users (I really don't know if this is needed. Delete only admin user should not be necessary)
-- 
+- Define more possibileties than (ftp or not ftp) -> Related to more CMS (torrent for example)
