@@ -14,6 +14,8 @@ Dev before 0.2
 - Change logrotate log directory because user can set log dir personal.
 - Think about a solution to be able to delete one ftp account (maybe show up all and select number) and disable/enable function
 - For fucks sake... Add SSL and Letsencrypt ...
+- Add function to block website with a reason. (FIXED)
+- Add function to unblock websites.
 
 22-03-2017
 Development for version 0.3
