@@ -1,4 +1,4 @@
-# managelinux
+# manage-single-webnode
 
 !!! This Script is far away from finishing
 Help does print wrong usage and some functions will not work or even damage
