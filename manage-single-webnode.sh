@@ -131,10 +131,13 @@ function print_nginx_help() {
                 EXAMPLE: manage-single-webnode delete google.de
 
                 manage-single-webnode nginx disable $DOMAINNAME
-                EXAMPLE: manage-single-webnode disable google.de (all)
+                EXAMPLE: manage-single-webnode disable google.de (all/one)
 
                 manage-single-webnode nginx enable $DOMAINNAME
-                EXAMPLE: manage-single-webnode enable google.de (all)
+                EXAMPLE: manage-single-webnode enable google.de (all/one)
+
+		manage-single-webnode nginx block $DOMAINNAME (all/one)
+		EXAMPLE: manage-single-webnode block google.de (all/one)
 
                 If you use all as $3 with enable/disable command, it will disable/enable all domain/subdomains matching the name you entered'
 }
