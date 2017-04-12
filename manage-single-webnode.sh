@@ -598,26 +598,17 @@ function nginx() {
                                 exit 5
                         fi
                 fi
-                # THIS SHOULD BE AN EXTRA FUNCTION FOR NGINX COMMAND LIKE nginx deactivate $reason !!!!!
-                #
-                #elif [ "`echo $3`" = "because_of_issues"]; then
-                #       disable_all_nginx_confs $domainname_disable_nginx $because_of_issues
-                #       #mv $path_to_nginx_conf$domainname_disable_nginx.conf $path_to_nginx_conf$domainname_disable_nginx.conf.off
-                #        echo "`get_log_date` Disabled $domainname_disable_nginx in nginx" >> $logdir
-                #       cp $configsamples/nginx_issues.conf $path_to_nginx_conf$domainname_disable_nginx.conf
-                #       sed -i 's/ROOTDOMAINNAME/$domainname_disable_nginx/g' 
-                #fi
                 echo '
                 ATTENTION!!!
 
-                YOU HAVE TO DISABLE FTP FOR THIS COSTUMER. USE manage-single-webnode proftpd delete COMMAND!!!
+                YOU HAVE TO DISABLE FTP FOR THIS COSTUMER. USE manage-single-webnode proftpd disable COMMAND!!!
                 '
                 exit 0
         elif [ "$action" = "block" ];then
                 domainname_block_nginx=$2
                 multiple_or_one_block_nginx=$3
                 init_reason=$4
-                if ( [ "$domainname_disable_nginx" = "" ] || [ "$(echo $domainname_disable_nginx | grep -F '.' | wc -l)" != "1" ] ) || ( [ "$multiple_or_one_block_nginx" != "one" ] && [ "$multiple_or_one_block_nginx" != "all" ] ); then
+                if ( [ "$domainname_block_nginx" = "" ] || [ "$(echo $domainname_block_nginx | grep -F '.' | wc -l)" != "1" ] ) || ( [ "$multiple_or_one_block_nginx" != "one" ] && [ "$multiple_or_one_block_nginx" != "all" ] ); then
                         if [ "$init_reason" = "" ]; then
                                 echo "You didn't put a reason as a parameter. Do you want to set one? [yes/no]"
                                 echo "`get_log_date` no reason provided in /manage-single-webnode nginx block/ command. Asking for a string." >> $logdir
@@ -688,16 +679,6 @@ function nginx() {
                         exit 5
                 fi
 
-# EXTRA FUNCTION!
-#               if [ -n "$enable_because_issue_resolved" ]; then
-#                       if [ "`echo $enable_because_issue_resolved`" != "issues_resolved" ]; then
-#                               echo "`get_log_date` Variable if issues were resolved was not valid." >> $logdir
-#                               echo 'IF ISSUES RESOLVED PLEASE SET 'issues_resolved' as '$3''
-#                               exit 5
-#                       fi
-#               fi
-
-
                 if [ "`ls $path_to_nginx_conf | grep $domainname_enable_nginx | wc -l`" = "0" ]; then
                         echo "`get_log_date` CRITICAL: Abort Action /nginx disable $domainname_enable_nginx/ because nginx conf for Costumer was not found" >> $logdir
                         echo "$domainname_enable_nginx does not exist or is not disabled!"
@@ -708,7 +689,8 @@ function nginx() {
                         exit 70
                 elif [ "`echo $enable_because_issue_resolved`" = "all" ]; then
                         enable_all_nginx_confs $domainname_enable_nginx
-                        service nginx reload
+                        rm $path_to_nginx_conf$domainname_block_nginx-blocked.conf
+			service nginx reload
                 elif [ "`echo $enable_because_issue_resolved`" = "one" ]; then
                         if [ ! -f $path_to_nginx_conf$domainname_enable_nginx.conf.off ]; then
                                 echo "Aborted because config File doesnt exist or costumer is already enabled"
@@ -717,6 +699,7 @@ function nginx() {
                         else
                                 mv $path_to_nginx_conf$domainname_enable_nginx.conf.off $path_to_nginx_conf$domainname_enable_nginx.conf
                                 echo "`get_log_date` Disabled $domainname_enable_nginx in nginx" >> $logdir
+				rm $path_to_nginx_conf$domainname_block_nginx-blocked.conf
                                 service nginx reload
                                 echo "`get_log_date` Reloaded nginx" >> $logdir
                         fi
@@ -724,7 +707,7 @@ function nginx() {
                 echo '
                         ATTENTION!!!
 
-                        YOU HAVE TO ADD FTP FOR THIS COSTUMER. USE manage-single-webnode proftpd add COMMAND!!!
+                        IF YOU WANT TO RE-ENABLE FTP FOR THIS COSTUMER. USE manage-single-webnode proftpd enable COMMAND!!!
                         '
                         exit 0
         else
