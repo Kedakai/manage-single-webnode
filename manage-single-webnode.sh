@@ -437,14 +437,70 @@ function server() {
                                 postrotate
                                 [ ! -f /var/run/nginx.pid ] || kill -USR1 `cat /var/run/nginx.pid`
                                 endscript
-                                }' > /etc/logrotate.d/nginx 
+                                }' > /etc/logrotate.d/nginx
+			       # DAS HIER MUSS DYNAMISCH WERDEN!!!!!!!!!!!!	
                 fi
                 if [ "$todo" = "mysql" ]; then
                         echo "Setting up mysql. You will have to type some passwords in..."
                         apt-get install -y mysql
                         echo "Installed mysql."
                 fi
-        else
+		if [ "$todo" = "proftpd" ]; then
+			apt-get install -y -q proftpd proftpd-mod-sqlite sqlite3
+			echo '	DefaultRoot                     ~
+				RequireValidShell               on
+				PassivePorts                  15000 15250
+
+				<IfModule mod_sql_sqlite.c>
+			        SQLBackend sqlite3
+				SQLConnectInfo /var/www/ftpmanager/proftpdusers.db
+				SQLAuthTypes Crypt Plaintext
+				SQLUserInfo users userid passwd uid gid homedir shell
+				SQLGroupInfo groups groupname gid members
+				IfModule>' >> /etc/proftpd/proftpd.conf
+			echo 'LoadModule mod_sql.c
+			      Module mod_sql_sqlite.c' >> /etc/proftpd/modules.conf
+			echo 'Should i enable encryption for FTP? (HIGHLY RECOMMENDED) [yes/no]'
+			read answer
+			if [ "$answer" = "yes" ]; then
+				echo '	<IfModule mod_tls.c>
+				      	TLSEngine                  on
+					TLSLog                     /var/log/proftpd/tls.log
+					TLSProtocol                TLSv1.2
+					TLSCipherSuite AES128+EECDH:AES128+EDH
+					TLSOptions                 AllowClientRenegotiations NoCertRequest NoSessionReuseRequired
+					TLSRSACertificateFile      /etc/proftpd/ssl/proftpd.cert.pem
+					TLSRSACertificateKeyFile   /etc/proftpd/ssl/proftpd.key.pem
+					TLSVerifyClient            off
+					TLSRequired                on
+					</IfModule>' >> /etc/proftpd/tls.conf
+				echo "Generating Certificate... (You will need too Type some information in"
+				echo "It is important, that you set common-name to the domainname clients connecting to the ftp-server"
+				echo "If you don't have one, you can use the DNS entry most providers give to you as a default"
+				mkdir /etc/proftpd/ssl
+				openssl req -x509 -nodes -newkey rsa:2048 -keyout /etc/proftpd/ssl/proftpd.pem -out /etc/proftpd/ssl/proftpd.pem
+				chmod -R 644 /etc/proftpd/ssl
+			elif [ "$answer" = "no" ]; then
+				echo "Okay, then without encryption. Bit i've warned you..."
+				echo "Creating sqlite3 Database"
+				sqlite3 /etc/proftpd/proftpdusers.db "CREATE TABLE users (
+    							userid VARCHAR(30) NOT NULL UNIQUE,
+						        passwd VARCHAR(80) NOT NULL,
+    							uid INTEGER UNIQUE,
+						        gid INTEGER,
+    							homedir VARCHAR(255),
+						    	shell VARCHAR(255)
+  							passwd_original VARCHAR(80),
+							state VARCHAR(80),
+							root_domain VARCHAR(80),
+    							);"
+				echo "Done setting up proftpd with sqlite3"
+			else
+				echo "It seems like you'r answer was wrong. Please try again."
+				print_server_help
+			fi
+		fi
+	elif
                 print_server_help
                 echo "`get_log_date` printed help for server action" >> $logdir
         fi
