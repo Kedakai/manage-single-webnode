@@ -482,6 +482,11 @@ function server() {
 				chmod -R 644 /etc/proftpd/ssl
 			elif [ "$answer" = "no" ]; then
 				echo "Okay, then without encryption. Bit i've warned you..."
+			else
+				echo "It seems like you'r answer was wrong. Please try again."
+				print_server_help
+				exit 15
+			fi
 				echo "Creating sqlite3 Database"
 				sqlite3 /etc/proftpd/proftpdusers.db "CREATE TABLE users (
     							userid VARCHAR(30) NOT NULL UNIQUE,
@@ -495,9 +500,7 @@ function server() {
 							root_domain VARCHAR(80),
     							);"
 				echo "Done setting up proftpd with sqlite3"
-			else
-				echo "It seems like you'r answer was wrong. Please try again."
-				print_server_help
+				service proftpd restart
 			fi
 		fi
 	elif
@@ -794,62 +797,64 @@ function nginx() {
         fi
 }
 
-function proftpd () {
-        action=$1
-        if [ "$action" = "add" ]; then
-                domainname_add_proftpd=$2
-                should_add_user_ftp_add=$3
-                if [ ! -n "$should_add_user_ftp_add" ]; then
-                        mkdir /home/web/ftp_manage/$domainname_add_proftpd/htdocs
-                        echo "`get_log_date` Created working dir for FTP-Interface for $domainname_add_proftpd" >> $logdir
-                        cp /home/samples/proftpd/webinterface/* /home/web/ftp_manage/$domainname_add_proftpd/htdocs
-                        echo "`get_log_date` Copied Data for Interface for $domainname_add_proftpd" >> $logdir
-                        nginx add ftp-manage.$domainname_add_proftpd ftp no no
-                        domainname_add_proftpd_cutted=$(echo "domainname_add_proftpd" | cut -d '.' -f 1) # FUNKTIONIERT NUR MIT EINEM PUNKT IN EINER SUBDOMAIN
-                        proftpd_add_admin_username=$(echo "$domainname_add_proftpd_cutted-admin")
-                        proftpd_add_admin_pw=$(pwgen -s 24)
-                        sed -i 's:ADMINUSER1234:$proftpd_add_admin_username:g' /home/web/ftp_manage/$domainname_add_proftpd/htdocs/run.php
-                        sqlite3 $proftpd_sqlite3_database_lcoation "INSERT INTO users VALUES ('$proftpd_add_admin_username','$proftpd_add_admin_pw','1001','1001','$path_to_nginx_work$domainname_add_proftpd/htdocs','/bin/false')"
-                        echo "`get_log_date` Created Admin user and configured Managemend Interface" >> $logdir
-                        service nginx reload
-                elif [ "$should_add_user_ftp_add" = "user" ]; then
-                        username_proftpd_add=$4
-                        if [ ! -n "username_proftpd_add" ]; then
-                                echo "You have to enter a correct Username!" 
-                                echo "`get_log_date` Aborted action proftpd add $domainname_add_proftpd user because of wrong username" >> $logdir
-                                exit 453
-                        fi
-                        proftpd_random_pw=$(pwgen -s 24)
-                        sqlite3 $proftpd_sqlite3_database_lcoation "INSERT INTO users VALUES ('$username_proftpd_add','$proftpd_random_pw','1001','1001','$path_to_nginx_work$domainname_add_proftpd/htdocs','/bin/false')"
-                else
-                        print_proftpd_help
-                        exit 564
-                fi
+function proftpd
 
-        elif [ "$action" = "delete" ]; then
-                ##                                        !!!
-                ##      EINZELNEN USER LÖSCHEN KÖNNEN     !!!
-                ##                                        !!!
-                echo '
-                ATTENTION!! ARE YOU SURE YOU SHOULD DO THAT?'
-                echo ""
-                echo "Are you sure? (yes/no)"
-                read sure
-
-                if [ "$sure" = "yes" ]; then
-                        domainname_delete_proftpd=$2
-                        rm -rf /home/web/ftp_manage/$domainname_delete_proftpd
-                        sqlite3 $proftpd_sqlite3_database_lcoation "DELETE FROM users WHERE homedir LIKE '%$domainname_delete_proftpd%'"
-                        echo "`get_log_date` FTP-Manage Interface and Account from$domainname_delete_proftpd deleted" >> $logdir
-                else
-                        echo 'WE DO NOTHING HERE!'
-                        echo "`get_log_date` Delete FTP for $domainname_delete_proftpd aborted!" >> $logdir
-                fi
-        else
-                print_proftpd_help
-                exit 1
-        fi
-}
+#function ftp-manage-in-nginx-please () {
+#        action=$1
+#        if [ "$action" = "add" ]; then
+#                domainname_add_proftpd=$2
+#                should_add_user_ftp_add=$3
+#                if [ ! -n "$should_add_user_ftp_add" ]; then
+#                        mkdir /home/web/ftp_manage/$domainname_add_proftpd/htdocs
+#                        echo "`get_log_date` Created working dir for FTP-Interface for $domainname_add_proftpd" >> $logdir
+#                        cp /home/samples/proftpd/webinterface/* /home/web/ftp_manage/$domainname_add_proftpd/htdocs
+#                        echo "`get_log_date` Copied Data for Interface for $domainname_add_proftpd" >> $logdir
+#                        nginx add ftp-manage.$domainname_add_proftpd ftp no no
+#                        domainname_add_proftpd_cutted=$(echo "domainname_add_proftpd" | cut -d '.' -f 1) # FUNKTIONIERT NUR MIT EINEM PUNKT IN EINER SUBDOMAIN
+#                        proftpd_add_admin_username=$(echo "$domainname_add_proftpd_cutted-admin")
+#                        proftpd_add_admin_pw=$(pwgen -s 24)
+#                        sed -i 's:ADMINUSER1234:$proftpd_add_admin_username:g' /home/web/ftp_manage/$domainname_add_proftpd/htdocs/run.php
+#                        sqlite3 $proftpd_sqlite3_database_lcoation "INSERT INTO users VALUES ('$proftpd_add_admin_username','$proftpd_add_admin_pw','1001','1001','$path_to_nginx_work$domainname_add_proftpd/htdocs','/bin/false')"
+#                        echo "`get_log_date` Created Admin user and configured Managemend Interface" >> $logdir
+#                        service nginx reload
+#                elif [ "$should_add_user_ftp_add" = "user" ]; then
+#                        username_proftpd_add=$4
+#                        if [ ! -n "username_proftpd_add" ]; then
+#                                echo "You have to enter a correct Username!" 
+#                                echo "`get_log_date` Aborted action proftpd add $domainname_add_proftpd user because of wrong username" >> $logdir
+#                                exit 453
+#                        fi
+#                        proftpd_random_pw=$(pwgen -s 24)
+#                        sqlite3 $proftpd_sqlite3_database_lcoation "INSERT INTO users VALUES ('$username_proftpd_add','$proftpd_random_pw','1001','1001','$path_to_nginx_work$domainname_add_proftpd/htdocs','/bin/false')"
+#                else
+#                        print_proftpd_help
+#                        exit 564
+#                fi
+#
+#        elif [ "$action" = "delete" ]; then
+#                ##                                        !!!
+#                ##      EINZELNEN USER LÖSCHEN KÖNNEN     !!!
+#                ##                                        !!!
+#                echo '
+#                ATTENTION!! ARE YOU SURE YOU SHOULD DO THAT?'
+#                echo ""
+#                echo "Are you sure? (yes/no)"
+#                read sure
+#
+#                if [ "$sure" = "yes" ]; then
+#                        domainname_delete_proftpd=$2
+#                        rm -rf /home/web/ftp_manage/$domainname_delete_proftpd
+#                        sqlite3 $proftpd_sqlite3_database_lcoation "DELETE FROM users WHERE homedir LIKE '%$domainname_delete_proftpd%'"
+#                        echo "`get_log_date` FTP-Manage Interface and Account from$domainname_delete_proftpd deleted" >> $logdir
+#                else
+#                        echo 'WE DO NOTHING HERE!'
+#                        echo "`get_log_date` Delete FTP for $domainname_delete_proftpd aborted!" >> $logdir
+#                fi
+#        else
+#                print_proftpd_help
+#                exit 1
+#        fi
+#}
 
 setup_script
 
