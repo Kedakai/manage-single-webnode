@@ -10,26 +10,26 @@ Dev before 0.2
 - ADD feature to disable or enable premium costumers (FIXED)
 - Add function to disable or enable ftp manage interface
 - cleanup this whole mess and create a useful structure
-- Improve nginx issue disable functions.
+- Improve nginx issue disable functions. (FIXED)
 - Change logrotate log directory because user can set log dir personal.
-- Think about a solution to be able to delete one ftp account (maybe show up all and select number) and disable/enable function
-- For fucks sake... Add SSL and Letsencrypt ...
+- Think about a solution to be able to delete one ftp account (maybe show up all and select number) and disable/enable function (FIXED)
+- For fucks sake... Add SSL and Letsencrypt ... (For PROFTPD implemented)
 - Add function to block website with a reason. (FIXED)
-- Add function to unblock websites.
+- Add function to unblock websites. (FIXED)
 
 22-03-2017
 Development for version 0.3
 
-- Built into /usr/sbin/local and make setup more beatiful
+- Built into /usr/sbin/local and make setup more beatiful (PARTLY FIXED)
 - nginx_help does not contain delete or disable all
 - Same as above for proftpd
-- Built Feature to disable and enable FTP-Accounts without deleting them (Maybe table with (passbefore))
+- Built Feature to disable and enable FTP-Accounts without deleting them (Maybe table with (passbefore)) (FIXED)
 - nginx add with unlimited domainnames and ask for primary domainname after entered. (Maybe for loop until empty, we'll see..)
 - Translate into german (set variable with language)
 - Add a lot of comments
 - Code beautifing
-- Add verbose mode
-- Search if it is necessary to look if anything for php5 is installed except of base php5 (Add support for other versions too.. difine php version in variable)
+- Add verbose mode (Code exists, Commands needed)
+- Search if it is necessary to look if anything for php5 is installed except of base php5 (Add support for other versions too.. difine php version in variable) (Dependency's: pwgen)
 - Check for language...
 - Make output more specific
 - Make sed's more dynamic 
@@ -40,7 +40,7 @@ Development for version 0.3
 - Review FTP-Manage for security leaks. (This is quite important though....)
   Maybe we should look into a better version for this. Maybe docker. maybe not.
 - Make FTP-Interface more beautiful (CSS and so one..)
-- nginx should become an $reason disabled for domainname. (This will be funny tooo......)
-- We need an reenable function for this too.
-- Add function to delete single ftp-users (I really don't know if this is needed. Delete only admin user should not be necessary)
+- nginx should become an $reason disabled for domainname. (This will be funny tooo......) (FIXED)
+- We need an reenable function for this too. (FIXED)
+- Add function to delete single ftp-users (I really don't know if this is needed. Delete only admin user should not be necessary) (FIXED)
 - Define more possibileties than (ftp or not ftp) -> Related to more CMS (torrent for example)
