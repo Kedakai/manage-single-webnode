@@ -608,7 +608,7 @@ function nginx() {
                 domainname_block_nginx=$2
                 multiple_or_one_block_nginx=$3
                 init_reason=$4
-                if ( [ "$domainname_block_nginx" = "" ] || [ "$(echo $domainname_block_nginx | grep -F '.' | wc -l)" != "1" ] ) || ( [ "$multiple_or_one_block_nginx" != "one" ] && [ "$multiple_or_one_block_nginx" != "all" ] ); then
+                if ( [ "$domainname_block_nginx" != "" ] || [ "$(echo $domainname_block_nginx | grep -F '.' | wc -l)" = "1" ] ) && ( [ "$multiple_or_one_block_nginx" = "one" ] || [ "$multiple_or_one_block_nginx" = "all" ] ); then
                         if [ "$init_reason" = "" ]; then
                                 echo "You didn't put a reason as a parameter. Do you want to set one? [yes/no]"
                                 echo "`get_log_date` no reason provided in /manage-single-webnode nginx block/ command. Asking for a string." >> $logdir
@@ -642,7 +642,7 @@ function nginx() {
                         used_reason=$( echo $init_reason )
                         if [ "$multiple_or_one_block_nginx" = "one" ]; then
                                 if [ ! -f $path_to_nginx_conf$domainname_block_nginx.conf ]; then
-                                        echo "Aborted because config File doesnt exist or costumer is already disabled"
+                                        echo "Aborted because config File doesnt exist or costumer is already blocked/disabled"
                                         echo "`get_log_date` Abordet because Costumer config File for nginx was not found" >> $logdir
                                         exit 6
                                 else
@@ -669,7 +669,30 @@ function nginx() {
                         else
                                 print_nginx_help
                         fi
+			print_nginx_help
                 fi
+	elif [ "$action" = "unblock" ]; then
+		domainname_unblock_nginx=$2
+		multiple_or_one_unblock_nginx=$3
+		if ( [ "$domainname_unblock_nginx" != "" ] || [ "$(echo $domainname_unblock_nginx | grep -F '.' | wc -l)" = "1" ] ) && ( [ "$multiple_or_one_unblock_nginx" = "one" ] || [ "$multiple_or_one_unblock_nginx" = "all" ] ); then
+			if [ ! -f $path_to_nginx_conf$domainname_unblock_nginx-blocked.conf ]; then
+				echo "Aborted because config File doesnt exist or costumer is unblocked/enabled"
+                                echo "`get_log_date` Abordet at /unblock/ because Costumer config File for nginx was not found" >> $logdir
+                                exit 6
+				if [ "$multiple_or_one_unblock_nginx" = "one" ]; then
+                        		rm $path_to_nginx_conf$domainname_unblock_nginx-blocked.conf
+					mv $path_to_nginx_conf$domainname_unblock_nginx.conf.off $path_to_nginx_conf$domainname_unblock_nginx.conf
+					service nginx reload
+				elif [ "`echo $multiple_or_one_unblock_nginx`" = "all" ]; then
+                                	enable_all_nginx_confs $domainname_unblock_nginx
+	                                rm $path_to_nginx_conf$domainname_block_nginx-blocked.conf
+					service nginx reload
+                	        else
+                        	        print_nginx_help
+	                        fi
+        	                print_nginx_help
+                	fi
+		fi
         elif [ "$action" = "enable" ]; then
                 domainname_enable_nginx=$2
                 enable_because_issue_resolved=$3
@@ -689,7 +712,6 @@ function nginx() {
                         exit 70
                 elif [ "`echo $enable_because_issue_resolved`" = "all" ]; then
                         enable_all_nginx_confs $domainname_enable_nginx
-                        rm $path_to_nginx_conf$domainname_block_nginx-blocked.conf
 			service nginx reload
                 elif [ "`echo $enable_because_issue_resolved`" = "one" ]; then
                         if [ ! -f $path_to_nginx_conf$domainname_enable_nginx.conf.off ]; then
@@ -699,7 +721,6 @@ function nginx() {
                         else
                                 mv $path_to_nginx_conf$domainname_enable_nginx.conf.off $path_to_nginx_conf$domainname_enable_nginx.conf
                                 echo "`get_log_date` Disabled $domainname_enable_nginx in nginx" >> $logdir
-				rm $path_to_nginx_conf$domainname_block_nginx-blocked.conf
                                 service nginx reload
                                 echo "`get_log_date` Reloaded nginx" >> $logdir
                         fi
