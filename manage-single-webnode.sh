@@ -113,7 +113,7 @@ function print_main_help() {
                 manage-single-webnode proftpd
                 manage-single-webnode server
 
-                If you want to see help for this command type help abter above commands'
+                If you want to see help for this command type help after above commands'
 }
 
 function print_nginx_help() {
@@ -138,7 +138,10 @@ function print_nginx_help() {
                 EXAMPLE: manage-single-webnode enable google.de (all/one)
 
 		manage-single-webnode nginx block $DOMAINNAME (all/one)
-		EXAMPLE: manage-single-webnode block google.de (all/one)
+		EXAMPLE: manage-single-webnode block google.de (all/one) <- $3
+
+		manage-single-webnode nginx unblock $DOMAINNAME (all/one)
+                EXAMPLE: manage-single-webnode unblock google.de (all/one) <- $3
 
                 If you use all as $3 with enable/disable command, it will disable/enable all domain/subdomains matching the name you entered'
 }
@@ -149,14 +152,26 @@ function print_proftpd_help() {
                  
                 The following Commands are available:
 
-                manage-single-webnode proftpd add $DOMAINNAME
-                EXAMPLE: manage-single-webnode proftpd add google.de
+                manage-single-webnode proftpd add $DOMAINNAME $DIRECTORY $USERNAME $PASSWORD
+                EXAMPLE: manage-single-webnode proftpd add google.de /var/www/google.de/ftp admin 
+		(Note: Without providing a password we generate a safe 24 digit random password)
+		EXAMPLE: manage-single-webnode proftpd add google.de /var/www/google.de/ftp admin --i-really-want-to-choose-my-password-by-myself
+		(Note: With "--i-really-want-to-choose-my-password-by-myself you are allowed to set the password yourself"
 
-                manage-single-webnode proftpd delete $DOMAINNAME
-                EXAMPLE: manage-single-webnode proftpd delete google.de
+		manage-single-webnode proftpd disable $USERNAME one/all $Domainname
+		EXAMPLE: manage-single-webnode proftpd disable admin one ($Domainname is not used)
+		EXAMPLE: manage-single-webnode proftpd disable none all google.de
+		(Note: If you use "all" username has to be "none" and $Domainame the same you antered when created these accounts)
 
-                manage-single-webnode proftpd add $DOMAINNAME user $USERNAME
-                EXAMPLE: manage-single-webnode proftpd add google.de user lalala'
+		manage-single-webnode proftpd enable $USERNAME one/all $Domainname
+                EXAMPLE: manage-single-webnode proftpd enable admin one ($Domainname is not used)
+                EXAMPLE: manage-single-webnode proftpd enable none all google.de
+                (Note: If you use "all" username has to be "none" and $Domainame the same you antered when created these accounts)
+
+		manage-single-webnode proftpd delete $USERNAME one/all $Domainname
+                EXAMPLE: manage-single-webnode proftpd delete admin one ($Domainname is not used)
+                EXAMPLE: manage-single-webnode proftpd delete none all google.de
+                (Note: If you use "all" username has to be "none" and $Domainame the same you antered when created these accounts)'
 }
 
 function disable_all_nginx_confs() {
@@ -1003,7 +1018,7 @@ setup_script
 if [ "$1" = "nginx" ]; then
         nginx $2 $3 $4 $5 $6
 elif [ "$1" = "proftpd" ]; then
-        proftpd $2 $3
+        proftpd $2 $3 $4
 elif [ "$1" = "server" ]; then
         server $2 $3 $4
 else
