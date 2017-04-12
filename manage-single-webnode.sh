@@ -310,6 +310,34 @@ function print_server_help() {
         echo "`get_log_date` Printed help for manage-single-webnode server" >> $logdir
 }
 
+
+function enable_all_user_proftpd () {
+        domainname_enable_all_user_proftpd=$1
+        for userids in $(sqlite3 /etc/proftpd/proftpdusers.db "SELECT userid FROM users WHERE root_domain=\'$domainname_enable_all_user_proftpd\';"); do
+                passwd_orig_enable_all_user_proftpd=$( sqlite3 /etc/proftpd/proftpdusers.db "SELECT passwd_orig FROM users WHERE userid='\$userids'\;")
+                sqlite3 /etc/proftpd/proftpdusers.db "UPDATE users SET passwd=\'$passwd_orig_enable_all_user_proftpd\' WHERE userid='\$userids'\;"
+        done
+}
+
+
+function disable_all_user_proftpd () {
+        domainname_disable_all_user_proftpd=$1
+        for userids in $(sqlite3 /etc/proftpd/proftpdusers.db "SELECT userid FROM users WHERE root_domain=\'$domainname_disable_all_user_proftpd\';"); do
+		passwd_disable_all_user_proftpd=$( sqlite3 /etc/proftpd/proftpdusers.db "SELECT passwd FROM users WHERE userid='\$userids'\;")
+                sqlite3 /etc/proftpd/proftpdusers.db "UPDATE users SET passwd_orig=\'$passwd_disable_all_user_proftpd\' WHERE userid='\$userids'\;"
+		random_pw_disable_all_users_proftpd=$(pwgen -s 24 1)
+		sqlite3 /etc/proftpd/proftpdusers.db "UPDATE users SET passwd=\'$random_pw_disable_all_users_proftpd\' WHERE userid='\$userids'\;"
+        done
+}
+
+
+function delete_all_user_proftpd () {
+	domainname_delete_all_user_proftpd=$1
+	for userids in $(sqlite3 /etc/proftpd/proftpdusers.db "SELECT userid FROM users WHERE root_domain=\'$domainname_delete_all_user_proftpd\';"); do
+		sqlite3 /etc/proftpd/proftpdusers.db "DELETE FROM users WHERE userid='\$userids'\;"
+	done
+}
+
 function server() {
         action=$1
         todo=$2
