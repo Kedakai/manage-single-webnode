@@ -1,5 +1,6 @@
 #!/bin/bash
 
+##### UID GID MANAGEMENT FOR NGINX AND PROFTPD (USER: Web1)
 if [[ $EUID -ne 0 ]]; then
    echo "This script must be run as root"
    exit 74
@@ -797,7 +798,120 @@ function nginx() {
         fi
 }
 
-function proftpd
+function proftpd () {
+	action=$1
+	if [ "$action" = "add" ]; then
+		domainname_proftpd_add=$2
+		directory_proftpd_add=$3
+		username_proftpd_add=$4
+		password_proftpd_add=$5
+		if [ "$(echo $domainname_proftpd_add | grep -F '.' | wc -l)" = "1" ] && ( [ "$username_proftpd_add" != "" ] && [ "$username_proftpd_add" != "--i-really-want-to-choose-my-password-by-myself" ] ) && [ -d $directory_proftpd_add ]; then
+			if [ "$password_proftpd_add" = "--i-really-want-to-choose-my-password-by-myself" ]; then
+				echo "Okay, you want to choose the password for yourself. Please enter it now"
+				read -s password_proftpd_add_1
+				echo "Please re-enter password"
+				read -s password_proftpd_add_2
+				if [ "$password_proftpd_add_2" = "$password_proftpd_add_1" ]; then
+					echo "Password matched. Setting as password for the user: $username_proftpd_add"
+					password_proftpd_add=$password_proftpd_add_1
+				else
+					echo "Please try again. Passwords didn't match."
+					read -s password_proftpd_add_1
+	        		        echo "Please re-enter password"
+	        	        	read -s password_proftpd_add_2
+					if [ "$password_proftpd_add_2" = "$password_proftpd_add_1" ]; then
+		        	                echo "Password matched. Setting as password for the user: $username_proftpd_add"
+	        		                password_proftpd_add=$password_proftpd_add_1
+					else
+						print_proftpd_help
+						exit 15
+					fi
+				fi
+			else
+				echo "I will generate a random secure password."
+				password_proftpd_add=$(pwgen -s 24 1)
+			fi
+			if [ "$(echo $directory_proftpd_add | grep -i $domainname_proftpd_add | wc -l)" = "0" ]; then
+				echo "It seems like the directory does not match the domainname."
+				echo "If you DONT want it in that way please answer with [DONT DO]."
+				read answer
+				if [ "$answer" = "DONT DO" ]; then
+					echo "Terminating"
+					print_proftpd_help
+					exit 16
+				fi
+			fi
+			sqlite3 /etc/proftpd/proftpdusers.db "INSERT INTO users VALUES ('$username_proftpd_add','$password_proftpd_add','1001','1001','$directory_proftpd_add','/bin/false',' ','active','$domainname_proftpd_add');"
+			echo "Created user."
+		else
+			print_proftpd_help
+			exit 15
+		fi
+	elif [ "$action" = "disable" ]; then
+		username_proftpd_disable=$2
+		one_or_all_proftpd_disable=$3
+		domainname_proftpd_disable=$4
+		if [ "$one_or_all_proftpd_disable" = "one" ] && [ "$( sqlite3 /etc/proftpd/proftpdusers.db "SELECT * from users where userid=\'$username_proftpd_disable\';" | wc -l)" != "0" ]; then
+			password_before_proftpd_disable=$(sqlite3 /etc/proftpd/proftpdusers.db "SELECT passwd FROM users WHERE userid=\'$username_proftpd_disable\';")
+			random_pw_proftpd_disable=$(pwgen -s 24 1)
+			sqlite3 /etc/proftpd/proftpdusers.db "UPDATE users SET passwd_orig=\'$password_before_proftpd_disable\', passwd=\'$random_pw_proftpd_disable\';"
+			echo "Disabled user $username_proftpd_disable"
+			exit 0
+		elif [ "$one_or_all_proftpd_disable" = "all" ] && [ "$username_proftpd_disable" = "none" ] && [ "$(sqlite3 /etc/proftpd/proftpdusers.db "SELECT root_domain FROM users WHERE root_domain=\'$domainname_proftpd_disable\';" | wc -l )" != "0" ]; then
+			disable_all_user_proftpd $domainname_proftpd_disable
+			echo "Disabled all users for root_domain: $domainname_proftpd_disable"
+		else
+			print_proftpd_help
+			exit 16
+		fi
+	elif [ "$action" = "enable" ]; then
+		username_proftpd_enable=$2
+                one_or_all_proftpd_enable=$3
+                domainname_proftpd_enable=$4
+                if [ "$one_or_all_proftpd_enable" = "one" ] && [ "$( sqlite3 /etc/proftpd/proftpdusers.db "SELECT * from users where userid=\'$username_proftpd_disable\';" | wc -l)" != "0" ]; then
+                        password_before_proftpd_enable=$(sqlite3 /etc/proftpd/proftpdusers.db "SELECT passwd_orig FROM users WHERE userid=\'$username_proftpd_disable\';")
+                        sqlite3 /etc/proftpd/proftpdusers.db "UPDATE users SET passwd=\'$password_before_proftpd_enable\'"
+                        echo "Enabled user $username_proftpd_enable"
+                        exit 0
+                elif [ "$one_or_all_proftpd_enable" = "all" ] && [ "$username_proftpd_enable" = "none" ] && [ "$(sqlite3 /etc/proftpd/proftpdusers.db "SELECT root_domain FROM users WHERE root_domain=\'$domainname_proftpd_enable\';" | wc -l )" != "0" ]; then
+                        enable_all_user_proftpd $domainname_proftpd_enable
+                        echo "Enabled all users for root_domain: $domainname_proftpd_enable"
+                else
+                        print_proftpd_help
+                        exit 16
+                fi
+	elif [ "$action" = "delete" ]; then
+		username_proftpd_delete=$2
+                one_or_all_proftpd_delete=$3
+                domainname_proftpd_delete=$4
+                if [ "$one_or_all_proftpd_delete" = "one" ] && [ "$( sqlite3 /etc/proftpd/proftpdusers.db "SELECT * from users where userid=\'$username_proftpd_disable\';" | wc -l)" != "0" ]; then
+                        echo "Are you 100% sure that you want to delete this user? If not look at the proftpd to just disable him."
+			echo "If you are sure press ENTER. If not CTRL-C."
+			read trash
+			sqlite3 /etc/proftpd/proftpdusers.db "DELETE FROM users WHERE userid=\'username_proftpd_delete\'"
+                        echo "Deleted user $username_proftpd_delete"
+                        exit 0
+                elif [ "$one_or_all_proftpd_delete" = "all" ] && [ "$username_proftpd_delete" = "none" ] && [ "$(sqlite3 /etc/proftpd/proftpdusers.db "SELECT root_domain FROM users WHERE root_domain=\'$domainname_proftpd_delete\';" | wc -l )" != "0" ]; then
+			echo "Are you 100% sure that you want to delete all users with this root_domain?" 
+			echo "If not look at the proftpd to just disable them."
+			echo "If you are sure press ENTER. If not CTRL-C."
+			read trash
+			echo "Sorry to bother, but are you really really sure?"
+			echo "If you are really really sure press ENTER. If not CTRL-C."
+			read trash
+                        delete_all_user_proftpd $domainname_proftpd_delete
+                        echo "Deleted all users for root_domain: $domainname_proftpd_delete"
+                else
+                        print_proftpd_help
+                        exit 16
+                fi
+	elif [ "$action" = "show" ]; then
+		sqlite3 /etc/proftpd/proftpdusers.db "SELECT * FROM users;"
+	else
+		print_proftpd_help
+		exit 16
+	fi
+}
 
 #function ftp-manage-in-nginx-please () {
 #        action=$1
