@@ -54,7 +54,7 @@ only_premium_ftp_interface=false
 function setup_script(){
         if [ ! -d $configsamples ]; then
                 echo "Script does not seem do be setup or some directories changed. I will start the script setup, is that okay? [yes]"
-                read $answer
+                read answer
                 if [ "$answer" != "yes" ]; then
                         echo "Cannot work with non-setup Script. Aborting any actions."
                         exit 555
@@ -69,19 +69,19 @@ function setup_script(){
                                         apt-get -qq install git
                                 fi
                         fi
-			adduser --uid 1010 web1 -d /home
+			cur_dir=$(pwd)
+			useradd --uid 1010 web1 -d /home
                         mkdir -p $configsamples
                         cd $configsamples
                         git clone https://github.com/Kedakai/manage-single-webnode
-                        rm *
-                        mv configsamples/* .
-                        rm -rf configsamples
+                        mv manage-single-webnode/configsamples/* .
+                        rm -rf manage-single-webnode
+			cd $cur_dir
                         cp `pwd`/manage-single-webnode.sh /usr/local/sbin/manage-single-webnode
-                        mkdir -p `dirname $logdir/nginx`
-			chmod 660 -R`dirname $logdir`
+                        mkdir -p `dirname $logdir`/nginx
+			chmod 660 -R `dirname $logdir`
 			chown web1:web1 -R `dirname $logdir`
 			/bin/bash -c "sleep 5 ; rm manage-single-webnode.sh" &
-                        ########  NACH /usr/local/sbin einbauen. Das ist wesentlich schöner (package bauen?) Und bitte auch schöner.
                 fi
         fi
 }
