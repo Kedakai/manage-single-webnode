@@ -549,6 +549,9 @@ function server() {
     						);"
 			echo "Done setting up proftpd with sqlite3"
 			service proftpd restart
+		else
+			print_server_help
+			echo "`get_log_date` printed help for server action" >> $logdir
 		fi
 	
 	else
