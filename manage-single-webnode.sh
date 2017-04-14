@@ -69,6 +69,7 @@ function setup_script(){
                                         apt-get -qq install git
                                 fi
                         fi
+			adduser --uid 1010 web1 -d /home
                         mkdir -p $configsamples
                         cd $configsamples
                         git clone https://github.com/Kedakai/manage-single-webnode
@@ -76,7 +77,10 @@ function setup_script(){
                         mv configsamples/* .
                         rm -rf configsamples
                         cp `pwd`/manage-single-webnode.sh /usr/local/sbin/manage-single-webnode
-                        /bin/bash -c "sleep 5 ; rm manage-single-webnode.sh" &
+                        mkdir -p `dirname $logdir/nginx`
+			chmod 660 -R`dirname $logdir`
+			chown web1:web1 -R `dirname $logdir`
+			/bin/bash -c "sleep 5 ; rm manage-single-webnode.sh" &
                         ########  NACH /usr/local/sbin einbauen. Das ist wesentlich schöner (package bauen?) Und bitte auch schöner.
                 fi
         fi
@@ -465,8 +469,8 @@ function server() {
                         fi
                 fi
                 if [ "$todo" = "logrotate" ]; then
-                        echo '  /home/log/nginx/*.log {
-                                daily
+                        echo "$logdir/nginx/*.log {" >> /etc/logrotate.d/nginx
+                        echo ' daily
                                 missingok
                                 dateext
                                 dateformat %Y-%m-%d.
@@ -481,8 +485,7 @@ function server() {
                                 postrotate
                                 [ ! -f /var/run/nginx.pid ] || kill -USR1 `cat /var/run/nginx.pid`
                                 endscript
-                                }' > /etc/logrotate.d/nginx
-			       # DAS HIER MUSS DYNAMISCH WERDEN!!!!!!!!!!!!	
+                                }' >> /etc/logrotate.d/nginx
                 fi
                 if [ "$todo" = "mysql" ]; then
                         echo "Setting up mysql. You will have to type some passwords in..."
@@ -611,7 +614,7 @@ function nginx() {
                         chown -R web1:web1 $path_to_nginx_work$domainname_add_nginx/htdocs
                         service nginx reload  
                         echo "`get_log_date` Reloaded nginx" >> $logdir
-                        #elif FTP!!!!!!!!!!!!!11
+                        #elif FTP!!!!!!!!!!!!!11  -> v0.3
                 fi
                         echo '
                         ATTENTION!!!
@@ -884,7 +887,7 @@ function proftpd () {
 					exit 16
 				fi
 			fi
-			sqlite3 /etc/proftpd/proftpdusers.db "INSERT INTO users VALUES ('$username_proftpd_add','$password_proftpd_add','1001','1001','$directory_proftpd_add','/bin/false',' ','active','$domainname_proftpd_add');"
+			sqlite3 /etc/proftpd/proftpdusers.db "INSERT INTO users VALUES ('$username_proftpd_add','$password_proftpd_add','1010','1010','$directory_proftpd_add','/bin/false',' ','active','$domainname_proftpd_add');"
 			echo "Created user."
 		else
 			print_proftpd_help
@@ -1012,6 +1015,8 @@ function proftpd () {
 #                exit 1
 #        fi
 #}
+#
+# -> v0.3
 
 setup_script
 
