@@ -6,17 +6,17 @@ Dev before 0.2
 - Let the script check it's own variables on each start (MAYBE LATER)
 - Add function that setups the script properly (FIXED)
 - Check functionality of everything
-- Edit parts where comments left
+- Edit parts where comments left (FIXED)
 - ADD feature to disable or enable premium costumers (FIXED)
-- Add function to disable or enable ftp manage interface
+- Add function to disable or enable ftp manage interface (v0.3)
 - cleanup this whole mess and create a useful structure
 - Improve nginx issue disable functions. (FIXED)
-- Change logrotate log directory because user can set log dir personal.
+- Change logrotate log directory because user can set log dir personal. (FIXED)
 - Think about a solution to be able to delete one ftp account (maybe show up all and select number) and disable/enable function (FIXED)
 - For fucks sake... Add SSL and Letsencrypt ... (For PROFTPD implemented)
 - Add function to block website with a reason. (FIXED)
 - Add function to unblock websites. (FIXED)
-- UID and GID Management for nginx / proftpd config and especially FTP Users
+- UID and GID Management for nginx / proftpd config and especially FTP Users (PARTLY FIXED (nginx and php config))
 
 22-03-2017
 Development for version 0.3
