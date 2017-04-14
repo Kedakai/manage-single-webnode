@@ -16,7 +16,7 @@ Dev before 0.2
 - For fucks sake... Add SSL and Letsencrypt ... (For PROFTPD implemented)
 - Add function to block website with a reason. (FIXED)
 - Add function to unblock websites. (FIXED)
-- UID and GID Management for nginx / proftpd config and especially FTP Users (PARTLY FIXED (nginx and php config))
+- UID and GID Management for nginx / proftpd config and especially FTP Users (PARTLY FIXED)
 
 22-03-2017
 Development for version 0.3
