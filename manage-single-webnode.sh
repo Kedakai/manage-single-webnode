@@ -385,29 +385,29 @@ function server() {
                                         echo "`get_log_date` Aborted php5 install, because user answer was no" >> $logdir
                                         exit 0
                                 fi
-                        fi
-                        if [ "$(cat /etc/php5/fpm/pool.d/www.conf | grep 'group =' | grep 'www-data' | wc -l)" = "0" ]; then
-                                sed -i 's/group = www-data/group = web1/g' /etc/php5/fpm/pool.d/www.conf
-                                sed -i 's_listen = /var/run/php5-fpm.sock_listen = 127.0.0.1:9000_g' /etc/php5/fpm/pool.d/www.conf
-                                sed -i 's/pm = dynamic/pm = ondemand/g' /etc/php5/fpm/pool.d/www.conf
-                                sed -i 's/pm.max_children = 5/pm.max_children = 25/g' /etc/php5/fpm/pool.d/www.conf
-                                echo "`get_log_date` Configured php5" >> $logdir
-                                echo "Configuration of php5 has finished"
-                                #sed -i 's///g' /etc/php5/fpm/pool.d/www.conf  # FALLS MAN NOCH ETWAS BRAUCHT
-                                #sed -i 's///g' /etc/php5/fpm/pool.d/www.conf  # FALLS MAN NOCH ETWAS BRAUCHT
-                                #sed -i 's///g' /etc/php5/fpm/pool.d/www.conf  # FALLS MAN NOCH ETWAS BRAUCHT 
-                                #sed -i 's///g' /etc/php5/fpm/pool.d/www.conf  # FALLS MAN NOCH ETWAS BRAUCHT
-                                service php5-fpm restart
-                                echo "`get_log_date` Restarted php5 because of configuration" >> $logdir
-                        else
-                                echo "It seems like php5 was configured already..."
-                                echo "`get_log_date` Aborted manage-single-webnode server setup php5 because it seems like php5 was configured already" >> $logdir
-                                exit 555
-                        fi
+                        	if [ "$(cat /etc/php5/fpm/pool.d/www.conf | grep 'group =' | grep 'www-data' | wc -l)" = "1" ]; then
+                                	sed -i 's/group = www-data/group = web1/g' /etc/php5/fpm/pool.d/www.conf
+                                	sed -i 's_listen = /var/run/php5-fpm.sock_listen = 127.0.0.1:9000_g' /etc/php5/fpm/pool.d/www.conf
+                                	sed -i 's/pm = dynamic/pm = ondemand/g' /etc/php5/fpm/pool.d/www.conf
+                                	sed -i 's/pm.max_children = 5/pm.max_children = 25/g' /etc/php5/fpm/pool.d/www.conf
+                                	echo "`get_log_date` Configured php5" >> $logdir
+                                	echo "Configuration of php5 has finished"
+                                	#sed -i 's///g' /etc/php5/fpm/pool.d/www.conf  # FALLS MAN NOCH ETWAS BRAUCHT
+                                	#sed -i 's///g' /etc/php5/fpm/pool.d/www.conf  # FALLS MAN NOCH ETWAS BRAUCHT
+                                	#sed -i 's///g' /etc/php5/fpm/pool.d/www.conf  # FALLS MAN NOCH ETWAS BRAUCHT 
+                                	#sed -i 's///g' /etc/php5/fpm/pool.d/www.conf  # FALLS MAN NOCH ETWAS BRAUCHT
+                                	service php5-fpm restart
+                                	echo "`get_log_date` Restarted php5 because of configuration" >> $logdir
+                        	else
+                                	echo "It seems like php5 was configured already..."
+                                	echo "`get_log_date` Aborted manage-single-webnode server setup php5 because it seems like php5 was configured already" >> $logdir
+                                	exit 555
+                        	fi
+			fi
                 fi
 
                 if [ "$todo" = "nginx" ]; then
-                        if  [ ! -f `which nginx` ]; then
+                        if  [ ! -f /etc/nginx/nginx.conf ]; then
                                 echo "nginx is not installed. Should i install it for you? (yes/no)"
                                 read answer
                                 if [ "$answer" != "yes" ] && [ "$answer" != "no" ]; then
@@ -430,8 +430,8 @@ function server() {
                                         exit 0
                                 fi
                         fi
-                        if [ "$(cat /etc/nginx/nginx.conf | grep "$path_to_nginx_conf")" = "0" ]; then
-                                sed -i 's:include /etc/nginx/conf.d/*.conf:$path_to_nginx_conf*.conf:g' /etc/nginx/nginx.conf
+                        if [ "$(cat /etc/nginx/nginx.conf | grep "$path_to_nginx_conf" | wc -l)" = "0" ] && [ -f /etc/nginx/nginx.conf ]; then
+                                sed -i "s:include /etc/nginx/conf.d/*.conf:include $path_to_nginx_conf*.conf:g" /etc/nginx/nginx.conf
                                 sed -i 's:768:1024:g' /etc/nginx/nginx.conf
                                 sed -i 's:# gzip: gzip:g' /etc/nginx/nginx.conf
                                 echo "In which directory should nginx create log files? ex /home (No slash at the end)"
@@ -439,26 +439,25 @@ function server() {
                                 echo "Are you sure that the log-dir should be $answerdirlog? (yes/no)"
                                 echo "Even if it's /dev/null the script will accept it."
                                 read suredirlog
-                                if [ "$answerdirlog" != "yes" ] || [ "$answerdirlog" != "no" ]; then
+                                if [ "$suredirlog" != "yes" ] || [ "$suredirlog" != "no" ]; then
                                         echo "Answer was not yes or no, aborting."
                                         echo "`get_log_date` Aborting setting up nginx because answer for logging directory was not valid." >> $logdir
-                                elif [ "$answerdirlog" = "no" ]; then
+					exit 666
+                                elif [ "$suredirlog" = "no" ]; then
                                         echo "In which directory should nginx create log files? ex /home (No slash at the end)"
                                         read answerdirlog
                                         echo "Are you sure that the log-dir should be $answerdirlog? (yes/no)"
                                         echo "Even if it's /dev/null the script will accept it."
                                         read suredirlog
-                                        if [ "$answerdirlog" = "no" ]; then
+                                        if [ "$suredirlog" = "no" ]; then
                                                 echo "Aborting because answer was two times no"
                                                 echo "`get_log_date` Aborting setting up nginx because answer for logging directory was two times no." >> $logdir
                                                 exit 666
                                         fi
-                                else
-                                        sed -i "s:access_log.*:access_log $answerdirlog/access.log:g" /etc/nginx/nginx.conf
-                                        sed -i "s:error_log.*:error_log $answerdirlog/error.log:g" /etc/nginx/nginx.conf
-                                        sed -i "s:SAMPLELOGDIR:$answerdirlog:g" $configsamples/nginx/default.conf
-                                fi
-                                sed -i "s:LOGDIRFORNGINX:$answerdirlog:g"
+                               	fi 
+                                sed -i "s:access_log.*:access_log $answerdirlog/access.log:g" /etc/nginx/nginx.conf
+                                sed -i "s:error_log.*:error_log $answerdirlog/error.log:g" /etc/nginx/nginx.conf
+                                sed -i "s:SAMPLELOGDIR:$answerdirlog:g" $configsamples/nginx/*.conf
                                 echo "Configured nginx"
                                 echo "`get_log_date` Configured nginx for command: manage-single-webnode server setup nginx" >> $logdir
                                 service nginx restart
@@ -470,7 +469,10 @@ function server() {
                         fi
                 fi
                 if [ "$todo" = "logrotate" ]; then
-                        echo "$logdir/nginx/*.log {" >> /etc/logrotate.d/nginx
+			if [ ! -f `which logrotate` ]; then
+				apt-get install -qq -y logrotate
+			fi
+                        echo "`dirname $logdir`/nginx/*.log {" >> /etc/logrotate.d/nginx
                         echo ' daily
                                 missingok
                                 dateext
@@ -487,12 +489,20 @@ function server() {
                                 [ ! -f /var/run/nginx.pid ] || kill -USR1 `cat /var/run/nginx.pid`
                                 endscript
                                 }' >> /etc/logrotate.d/nginx
+			echo "Installed logrotate successfully"
+			exit 0
                 fi
                 if [ "$todo" = "mysql" ]; then
                         echo "Setting up mysql. You will have to type some passwords in..."
-                        apt-get install -y mysql
-                        echo "Installed mysql."
-                fi
+                        apt-get install -y mysql-server
+			rc=$?
+			if [ "$rc" = "0" ]; then
+	                        echo "Installed mysql."
+				exit 0
+        		else
+				echo "Something went wrong... ENable Verbose mode for further information"
+			fi
+		fi
 		if [ "$todo" = "proftpd" ]; then
 			apt-get install -y -q proftpd proftpd-mod-sqlite sqlite3
 			echo '	DefaultRoot                     ~
@@ -505,9 +515,9 @@ function server() {
 				SQLAuthTypes Crypt Plaintext
 				SQLUserInfo users userid passwd uid gid homedir shell
 				SQLGroupInfo groups groupname gid members
-				IfModule>' >> /etc/proftpd/proftpd.conf
+				</IfModule>' >> /etc/proftpd/proftpd.conf
 			echo 'LoadModule mod_sql.c
-			      Module mod_sql_sqlite.c' >> /etc/proftpd/modules.conf
+			      LoadModule mod_sql_sqlite.c' >> /etc/proftpd/modules.conf
 			echo 'Should i enable encryption for FTP? (HIGHLY RECOMMENDED) [yes/no]'
 			read answer
 			if [ "$answer" = "yes" ]; then
@@ -529,7 +539,7 @@ function server() {
 				openssl req -x509 -nodes -newkey rsa:2048 -keyout /etc/proftpd/ssl/proftpd.pem -out /etc/proftpd/ssl/proftpd.pem
 				chmod -R 644 /etc/proftpd/ssl
 			elif [ "$answer" = "no" ]; then
-				echo "Okay, then without encryption. Bit i've warned you..."
+				echo "Okay, then without encryption. But i've warned you..."
 			else
 				echo "It seems like you'r answer was wrong. Please try again."
 				print_server_help
@@ -542,10 +552,10 @@ function server() {
     						uid INTEGER UNIQUE,
 					        gid INTEGER,
     						homedir VARCHAR(255),
-					    	shell VARCHAR(255)
+					    	shell VARCHAR(255),
   						passwd_original VARCHAR(80),
 						state VARCHAR(80),
-						root_domain VARCHAR(80),
+						root_domain VARCHAR(80)
     						);"
 			echo "Done setting up proftpd with sqlite3"
 			service proftpd restart
@@ -1027,7 +1037,7 @@ setup_script
 if [ "$1" = "nginx" ]; then
         nginx $2 $3 $4 $5 $6
 elif [ "$1" = "proftpd" ]; then
-        proftpd $2 $3 $4
+        proftpd $2 $3 $4 $5 $6
 elif [ "$1" = "server" ]; then
         server $2 $3 $4
 else
