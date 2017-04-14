@@ -324,7 +324,8 @@ function print_server_help() {
                 manage-single-webnode server setup php5
                 manage-single-webnode server setup nginx
                 manage-single-webnode server setup logrotate
-                manage-single-webnode server setup mysql'
+                manage-single-webnode server setup mysql
+		manage-single-webnode server setup proftpd'
         
         echo "`get_log_date` Printed help for manage-single-webnode server" >> $logdir
 }
@@ -550,7 +551,7 @@ function server() {
 				service proftpd restart
 			fi
 		fi
-	elif
+	else
                 print_server_help
                 echo "`get_log_date` printed help for server action" >> $logdir
         fi
