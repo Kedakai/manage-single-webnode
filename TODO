@@ -1,7 +1,7 @@
 Undefiened Date
 Dev before 0.2
 
-- Update help so it prints right things
+- Update help so it prints right things (SHOULD BE FIXED ; WERE TESTING)
 - Create function that creates folder for config-samples (FIXED)
 - Let the script check it's own variables on each start (MAYBE LATER)
 - Add function that setups the script properly (FIXED)
