@@ -535,22 +535,22 @@ function server() {
 				print_server_help
 				exit 15
 			fi
-				echo "Creating sqlite3 Database"
-				sqlite3 /etc/proftpd/proftpdusers.db "CREATE TABLE users (
-    							userid VARCHAR(30) NOT NULL UNIQUE,
-						        passwd VARCHAR(80) NOT NULL,
-    							uid INTEGER UNIQUE,
-						        gid INTEGER,
-    							homedir VARCHAR(255),
-						    	shell VARCHAR(255)
-  							passwd_original VARCHAR(80),
-							state VARCHAR(80),
-							root_domain VARCHAR(80),
-    							);"
-				echo "Done setting up proftpd with sqlite3"
-				service proftpd restart
-			fi
+			echo "Creating sqlite3 Database"
+			sqlite3 /etc/proftpd/proftpdusers.db "CREATE TABLE users (
+    						userid VARCHAR(30) NOT NULL UNIQUE,
+					        passwd VARCHAR(80) NOT NULL,
+    						uid INTEGER UNIQUE,
+					        gid INTEGER,
+    						homedir VARCHAR(255),
+					    	shell VARCHAR(255)
+  						passwd_original VARCHAR(80),
+						state VARCHAR(80),
+						root_domain VARCHAR(80),
+    						);"
+			echo "Done setting up proftpd with sqlite3"
+			service proftpd restart
 		fi
+	
 	else
                 print_server_help
                 echo "`get_log_date` printed help for server action" >> $logdir
@@ -622,7 +622,7 @@ function nginx() {
 
                         IF YOU WANT TO ADD FTP TOO YOU HAVE TO DO THIS WITH THE manage-single-webnode proftpd add COMMAND!!!
                         '
-        fi
+			exit 0
         elif [ "$action" = "delete" ]; then
                 domainname_delete_nginx=$2
                 if ( [ "$domainname_delete_nginx" = "" ] || [ "$(echo $domainname_delete_nginx | grep -F '.' | wc -l)" != "1" ] ); then
