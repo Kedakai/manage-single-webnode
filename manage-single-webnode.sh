@@ -511,7 +511,7 @@ function server() {
 
 				<IfModule mod_sql_sqlite.c>
 			        SQLBackend sqlite3
-				SQLConnectInfo /var/www/ftpmanager/proftpdusers.db
+				SQLConnectInfo /etc/proftpd/proftpdusers.db
 				SQLAuthTypes Crypt Plaintext
 				SQLUserInfo users userid passwd uid gid homedir shell
 				SQLGroupInfo groups groupname gid members
@@ -557,7 +557,13 @@ function server() {
 						state VARCHAR(80),
 						root_domain VARCHAR(80)
     						);"
+			sqlite3 /etc/proftpd/proftpdusers.db "CREATE TABLES groups (
+						groupname VARCHAR(80),
+						gid INT(4),
+						members VARCHAR(255)
+						);"
 			echo "Done setting up proftpd with sqlite3"
+			echo "/bin/false" >> /etc/shells
 			service proftpd restart
 		else
 			print_server_help
@@ -911,13 +917,13 @@ function proftpd () {
 		username_proftpd_disable=$2
 		one_or_all_proftpd_disable=$3
 		domainname_proftpd_disable=$4
-		if [ "$one_or_all_proftpd_disable" = "one" ] && [ "$( sqlite3 /etc/proftpd/proftpdusers.db "SELECT * from users where userid=\'$username_proftpd_disable\';" | wc -l)" != "0" ]; then
-			password_before_proftpd_disable=$(sqlite3 /etc/proftpd/proftpdusers.db "SELECT passwd FROM users WHERE userid=\'$username_proftpd_disable\';")
+		if [ "$one_or_all_proftpd_disable" = "one" ] && [ "$( sqlite3 /etc/proftpd/proftpdusers.db "SELECT * from users where userid='$username_proftpd_disable';" | wc -l)" != "0" ]; then
+			password_before_proftpd_disable=$(sqlite3 /etc/proftpd/proftpdusers.db "SELECT passwd FROM users WHERE userid='$username_proftpd_disable';")
 			random_pw_proftpd_disable=$(pwgen -s 24 1)
-			sqlite3 /etc/proftpd/proftpdusers.db "UPDATE users SET passwd_orig=\'$password_before_proftpd_disable\', passwd=\'$random_pw_proftpd_disable\';"
+			sqlite3 /etc/proftpd/proftpdusers.db "UPDATE users SET passwd_orig='$password_before_proftpd_disable', passwd='$random_pw_proftpd_disable';"
 			echo "Disabled user $username_proftpd_disable"
 			exit 0
-		elif [ "$one_or_all_proftpd_disable" = "all" ] && [ "$username_proftpd_disable" = "none" ] && [ "$(sqlite3 /etc/proftpd/proftpdusers.db "SELECT root_domain FROM users WHERE root_domain=\'$domainname_proftpd_disable\';" | wc -l )" != "0" ]; then
+		elif [ "$one_or_all_proftpd_disable" = "all" ] && [ "$username_proftpd_disable" = "none" ] && [ "$(sqlite3 /etc/proftpd/proftpdusers.db "SELECT root_domain FROM users WHERE root_domain='$domainname_proftpd_disable';" | wc -l )" != "0" ]; then
 			disable_all_user_proftpd $domainname_proftpd_disable
 			echo "Disabled all users for root_domain: $domainname_proftpd_disable"
 		else
@@ -928,12 +934,12 @@ function proftpd () {
 		username_proftpd_enable=$2
                 one_or_all_proftpd_enable=$3
                 domainname_proftpd_enable=$4
-                if [ "$one_or_all_proftpd_enable" = "one" ] && [ "$( sqlite3 /etc/proftpd/proftpdusers.db "SELECT * from users where userid=\'$username_proftpd_disable\';" | wc -l)" != "0" ]; then
-                        password_before_proftpd_enable=$(sqlite3 /etc/proftpd/proftpdusers.db "SELECT passwd_orig FROM users WHERE userid=\'$username_proftpd_disable\';")
-                        sqlite3 /etc/proftpd/proftpdusers.db "UPDATE users SET passwd=\'$password_before_proftpd_enable\'"
+                if [ "$one_or_all_proftpd_enable" = "one" ] && [ "$( sqlite3 /etc/proftpd/proftpdusers.db "SELECT * from users where userid='$username_proftpd_disable';" | wc -l)" != "0" ]; then
+                        password_before_proftpd_enable=$(sqlite3 /etc/proftpd/proftpdusers.db "SELECT passwd_orig FROM users WHERE userid='$username_proftpd_disable';")
+                        sqlite3 /etc/proftpd/proftpdusers.db "UPDATE users SET passwd='$password_before_proftpd_enable'"
                         echo "Enabled user $username_proftpd_enable"
                         exit 0
-                elif [ "$one_or_all_proftpd_enable" = "all" ] && [ "$username_proftpd_enable" = "none" ] && [ "$(sqlite3 /etc/proftpd/proftpdusers.db "SELECT root_domain FROM users WHERE root_domain=\'$domainname_proftpd_enable\';" | wc -l )" != "0" ]; then
+                elif [ "$one_or_all_proftpd_enable" = "all" ] && [ "$username_proftpd_enable" = "none" ] && [ "$(sqlite3 /etc/proftpd/proftpdusers.db "SELECT root_domain FROM users WHERE root_domain='$domainname_proftpd_enable';" | wc -l )" != "0" ]; then
                         enable_all_user_proftpd $domainname_proftpd_enable
                         echo "Enabled all users for root_domain: $domainname_proftpd_enable"
                 else
@@ -944,14 +950,14 @@ function proftpd () {
 		username_proftpd_delete=$2
                 one_or_all_proftpd_delete=$3
                 domainname_proftpd_delete=$4
-                if [ "$one_or_all_proftpd_delete" = "one" ] && [ "$( sqlite3 /etc/proftpd/proftpdusers.db "SELECT * from users where userid=\'$username_proftpd_disable\';" | wc -l)" != "0" ]; then
+                if [ "$one_or_all_proftpd_delete" = "one" ] && [ "$( sqlite3 /etc/proftpd/proftpdusers.db "SELECT * from users where userid='$username_proftpd_disable';" | wc -l)" != "0" ]; then
                         echo "Are you 100% sure that you want to delete this user? If not look at the proftpd to just disable him."
 			echo "If you are sure press ENTER. If not CTRL-C."
 			read trash
 			sqlite3 /etc/proftpd/proftpdusers.db "DELETE FROM users WHERE userid=\'$username_proftpd_delete\'"
                         echo "Deleted user $username_proftpd_delete"
                         exit 0
-                elif [ "$one_or_all_proftpd_delete" = "all" ] && [ "$username_proftpd_delete" = "none" ] && [ "$(sqlite3 /etc/proftpd/proftpdusers.db "SELECT root_domain FROM users WHERE root_domain=\'$domainname_proftpd_delete\';" | wc -l )" != "0" ]; then
+                elif [ "$one_or_all_proftpd_delete" = "all" ] && [ "$username_proftpd_delete" = "none" ] && [ "$(sqlite3 /etc/proftpd/proftpdusers.db "SELECT root_domain FROM users WHERE root_domain='$domainname_proftpd_delete';" | wc -l )" != "0" ]; then
 			echo "Are you 100% sure that you want to delete all users with this root_domain?" 
 			echo "If not look at the proftpd to just disable them."
 			echo "If you are sure press ENTER. If not CTRL-C."
