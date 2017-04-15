@@ -532,7 +532,7 @@ function server() {
 					TLSVerifyClient            off
 					TLSRequired                on
 					</IfModule>' >> /etc/proftpd/tls.conf
-				echo "Include /etc/proftpd/tls.conf" >> /etc/proftpd/tls.conf
+				echo "Include /etc/proftpd/tls.conf" >> /etc/proftpd/proftpd.conf
 				echo "Generating Certificate... (You will need too Type some information in"
 				echo "It is important, that you set common-name to the domainname clients connecting to the ftp-server"
 				echo "If you don't have one, you can use the DNS entry most providers give to you as a default"
@@ -935,8 +935,8 @@ function proftpd () {
 		username_proftpd_enable=$2
                 one_or_all_proftpd_enable=$3
                 domainname_proftpd_enable=$4
-                if [ "$one_or_all_proftpd_enable" = "one" ] && [ "$( sqlite3 /etc/proftpd/proftpdusers.db "SELECT * from users where userid='$username_proftpd_disable';" | wc -l)" != "0" ]; then
-                        password_before_proftpd_enable=$(sqlite3 /etc/proftpd/proftpdusers.db "SELECT passwd_orig FROM users WHERE userid='$username_proftpd_disable';")
+                if [ "$one_or_all_proftpd_enable" = "one" ] && [ "$( sqlite3 /etc/proftpd/proftpdusers.db "SELECT * from users where userid='$username_proftpd_enable';" | wc -l)" != "0" ]; then
+                        password_before_proftpd_enable=$(sqlite3 /etc/proftpd/proftpdusers.db "SELECT passwd_orig FROM users WHERE userid='$username_proftpd_enable';")
                         sqlite3 /etc/proftpd/proftpdusers.db "UPDATE users SET passwd='$password_before_proftpd_enable'"
                         echo "Enabled user $username_proftpd_enable"
                         exit 0
@@ -951,7 +951,7 @@ function proftpd () {
 		username_proftpd_delete=$2
                 one_or_all_proftpd_delete=$3
                 domainname_proftpd_delete=$4
-                if [ "$one_or_all_proftpd_delete" = "one" ] && [ "$( sqlite3 /etc/proftpd/proftpdusers.db "SELECT * from users where userid='$username_proftpd_disable';" | wc -l)" != "0" ]; then
+                if [ "$one_or_all_proftpd_delete" = "one" ] && [ "$( sqlite3 /etc/proftpd/proftpdusers.db "SELECT * from users where userid='$username_proftpd_delete';" | wc -l)" != "0" ]; then
                         echo "Are you 100% sure that you want to delete this user? If not look at the proftpd to just disable him."
 			echo "If you are sure press ENTER. If not CTRL-C."
 			read trash
