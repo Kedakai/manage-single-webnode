@@ -955,7 +955,7 @@ function proftpd () {
                         echo "Are you 100% sure that you want to delete this user? If not look at the proftpd to just disable him."
 			echo "If you are sure press ENTER. If not CTRL-C."
 			read trash
-			sqlite3 /etc/proftpd/proftpdusers.db "DELETE FROM users WHERE userid=\'$username_proftpd_delete\'"
+			sqlite3 /etc/proftpd/proftpdusers.db "DELETE FROM users WHERE userid='$username_proftpd_delete'"
                         echo "Deleted user $username_proftpd_delete"
                         exit 0
                 elif [ "$one_or_all_proftpd_delete" = "all" ] && [ "$username_proftpd_delete" = "none" ] && [ "$(sqlite3 /etc/proftpd/proftpdusers.db "SELECT root_domain FROM users WHERE root_domain='$domainname_proftpd_delete';" | wc -l )" != "0" ]; then
