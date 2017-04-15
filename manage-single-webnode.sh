@@ -536,7 +536,7 @@ function server() {
 				echo "It is important, that you set common-name to the domainname clients connecting to the ftp-server"
 				echo "If you don't have one, you can use the DNS entry most providers give to you as a default"
 				mkdir /etc/proftpd/ssl
-				openssl req -x509 -nodes -newkey rsa:2048 -keyout /etc/proftpd/ssl/proftpd.pem -out /etc/proftpd/ssl/proftpd.pem
+				openssl req -x509 -nodes -newkey rsa:2048 -keyout /etc/proftpd/ssl/proftpd.key.pem -out /etc/proftpd/ssl/proftpd.cert.pem
 				chmod -R 644 /etc/proftpd/ssl
 			elif [ "$answer" = "no" ]; then
 				echo "Okay, then without encryption. But i've warned you..."
@@ -557,7 +557,7 @@ function server() {
 						state VARCHAR(80),
 						root_domain VARCHAR(80)
     						);"
-			sqlite3 /etc/proftpd/proftpdusers.db "CREATE TABLES groups (
+			sqlite3 /etc/proftpd/proftpdusers.db "CREATE TABLE groups (
 						groupname VARCHAR(80),
 						gid INT(4),
 						members VARCHAR(255)
