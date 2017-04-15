@@ -532,6 +532,7 @@ function server() {
 					TLSVerifyClient            off
 					TLSRequired                on
 					</IfModule>' >> /etc/proftpd/tls.conf
+				echo "Include /etc/proftpd/tls.conf" >> /etc/proftpd/tls.conf
 				echo "Generating Certificate... (You will need too Type some information in"
 				echo "It is important, that you set common-name to the domainname clients connecting to the ftp-server"
 				echo "If you don't have one, you can use the DNS entry most providers give to you as a default"
@@ -553,7 +554,7 @@ function server() {
 					        gid INTEGER,
     						homedir VARCHAR(255),
 					    	shell VARCHAR(255),
-  						passwd_original VARCHAR(80),
+  						passwd_orig VARCHAR(80),
 						state VARCHAR(80),
 						root_domain VARCHAR(80)
     						);"
