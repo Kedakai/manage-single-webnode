@@ -14,7 +14,7 @@ service=$1
 #                                                                               #
 #################################################################################
 
-logdir="/var/log/manage-single-webnode.log"
+logdir="/var/log/manage-single-webnode.log" # Log for this script
 
 #################################################################################
 #                                                                               #
@@ -22,9 +22,9 @@ logdir="/var/log/manage-single-webnode.log"
 #                                                                               #
 #################################################################################
 
-path_to_nginx_conf="/home/etc/nginx/sites/"
-path_to_nginx_work="/home/web/"
-configsamples="/home/samples"
+path_to_nginx_conf="/home/etc/nginx/sites/" # path to nginx configuration files
+path_to_nginx_work="/home/web/" # Path where all the website data should be put in
+configsamples="/home/samples" # directory where configsamples should be put in
 
 #################################################################################
 #                                                                               #
@@ -32,17 +32,20 @@ configsamples="/home/samples"
 #                                                                               #
 #################################################################################
 
-proftpd_sqlite3_database_lcoation="/var/www/proftpd/proftpddatabase.db"
-mysql_root_pw="OhMyGodThatDatabasePWissoHArd!!"
+proftpd_sqlite3_database_lcoation="/var/www/proftpd/proftpddatabase.db" # This is for the FTP Users
+mysql_root_pw="OhMyGodThatDatabasePWissoHArd!!" # MYSQL root password for creating databases for example for wordpress
 
 #################################################################################
 #                                                                               #
 #               Here is the config for premium costumers                        #
-#                                                                               #
+#		Does only take effect if premiumenabled=true                    #
+#										#
 #################################################################################
 
+premiumenabled=false
+normal_costumer_speed=3000 # If premiumenabled=false no limit will be set.
 premium_costumer_speed=10000  # kbit/s right here
-only_premium_ftp_interface=false
+only_premium_ftp_interface=false # Only premium costumers are allowed to use FTP-Manage interface
 
 #################################################################################
 #The Premium Feature was disabled in 0.1 because it's useless in this state.    #
@@ -52,7 +55,7 @@ only_premium_ftp_interface=false
 #################################################################################
 
 function setup_script(){
-        if [ ! -d $configsamples ]; then
+        if [ ! -d $configsamples ] && [ ! -f /usr/local/sbin/manage-single-webnode ]; then
                 echo "Script does not seem do be setup or some directories changed. I will start the script setup, is that okay? [yes]"
                 read answer
                 if [ "$answer" != "yes" ]; then
