@@ -7,6 +7,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 service=$1
+asked_if_variables_are_correct=false
 
 #################################################################################
 #                                                                               #
@@ -1041,6 +1042,20 @@ function proftpd () {
 #}
 #
 # -> v0.3
+
+if [ "$asked_if_variables_are_correct" = "false" ]; then
+	echo "You started the script the first time? Have you set all variables for your invironment?"
+	echo "We suggest set nginx_work to the partition of the drive with the most of space. (If you have partitions"
+	echo "If you've setupped your server with a single partition (usually /) you can keep the variables as they are."
+	echo "Type Enter to continue. STRG-C if you want to edit the variables."
+	read trash
+fi
+
+if [ "$( grep -c debian /proc/version )" = "1" ] || [ "$( grep -c ubuntu /proc/version )" = "1" ]; then
+	echo "This script is currently only tested with debian and ubuntu."
+	echo "If you proceed anyways just type ENTER. If not CTRL-C"
+	read trash
+fi
 
 setup_script
 
