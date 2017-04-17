@@ -1047,8 +1047,10 @@ if [ "$asked_if_variables_are_correct" = "false" ]; then
 	echo "You started the script the first time? Have you set all variables for your invironment?"
 	echo "We suggest set nginx_work to the partition of the drive with the most of space. (If you have partitions"
 	echo "If you've setupped your server with a single partition (usually /) you can keep the variables as they are."
-	echo "Type Enter to continue. STRG-C if you want to edit the variables."
+	echo "Type Enter to restart. STRG-C if you want to edit the variables."
 	read trash
+	/bin/bash -c "sleep 0.2 ; sed -i s/asked_if_variables_are_correct=false/asked_if_variables_are_correct=true/g'" &
+	exit 0
 fi
 
 if [ "$( grep -c debian /proc/version )" = "1" ] || [ "$( grep -c ubuntu /proc/version )" = "1" ]; then
