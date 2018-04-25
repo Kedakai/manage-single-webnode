@@ -1,3 +1,8 @@
+Sadly this Script seems like cancer.
+It should work fine in it's current state.
+But as you see from the number of commits in which period of time this Script will most likely never be finished.
+
+
 # manage-single-webnode
 
 !!! This Script is far away from finishing
